@@ -43,4 +43,15 @@ describe('App', () => {
     expect(screen.getByRole('heading', { name: 'Perfis de fabricação' })).toBeInTheDocument()
     expect(await screen.findByText('Nenhuma impressão cadastrada.')).toBeInTheDocument()
   })
+
+  it('opens the new calculation workspace from navigation', async () => {
+    const user = userEvent.setup()
+
+    render(<App />)
+
+    await user.click(screen.getByRole('button', { name: /Novo cálculo/i }))
+
+    expect(screen.getByRole('heading', { name: 'Calcular custo e preço' })).toBeInTheDocument()
+    expect(screen.getByText('Preencha os dados e calcule para ver o detalhamento.')).toBeInTheDocument()
+  })
 })

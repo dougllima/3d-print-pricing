@@ -11,17 +11,18 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 
+import { NewCalculationPage } from '@/features/calculations'
 import { MaterialsPage } from '@/features/materials'
 import { PrintProfilesPage } from '@/features/print-profiles'
 import { PrintersPage } from '@/features/printers'
 import { ProductsPage } from '@/features/products'
 import { cn } from '@/shared/utils'
 
-type AppSection = 'materials' | 'printProfiles' | 'printers' | 'products'
+type AppSection = 'calculations' | 'materials' | 'printProfiles' | 'printers' | 'products'
 
 const navigationItems = [
   { label: 'Dashboard', icon: BarChart3 },
-  { label: 'Novo cálculo', icon: Calculator },
+  { label: 'Novo cálculo', icon: Calculator, section: 'calculations' },
   { label: 'Produtos', icon: Package, section: 'products' },
   { label: 'Impressões', icon: Layers3, section: 'printProfiles' },
   { label: 'Materiais', icon: Cuboid, section: 'materials' },
@@ -33,6 +34,7 @@ const navigationItems = [
 function App() {
   const [activeSection, setActiveSection] = useState<AppSection>('materials')
   const ActivePage = {
+    calculations: NewCalculationPage,
     materials: MaterialsPage,
     printProfiles: PrintProfilesPage,
     printers: PrintersPage,
