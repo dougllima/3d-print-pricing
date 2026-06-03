@@ -9,22 +9,28 @@ import {
   Printer,
   Settings,
 } from 'lucide-react'
+import { useState } from 'react'
 
 import { MaterialsPage } from '@/features/materials'
+import { PrintersPage } from '@/features/printers'
 import { cn } from '@/shared/utils'
+
+type AppSection = 'materials' | 'printers'
 
 const navigationItems = [
   { label: 'Dashboard', icon: BarChart3 },
   { label: 'Novo cálculo', icon: Calculator },
   { label: 'Produtos', icon: Package },
   { label: 'Impressões', icon: Layers3 },
-  { label: 'Materiais', icon: Cuboid, isActive: true },
-  { label: 'Impressoras', icon: Printer },
+  { label: 'Materiais', icon: Cuboid, section: 'materials' },
+  { label: 'Impressoras', icon: Printer, section: 'printers' },
   { label: 'Histórico', icon: History },
   { label: 'Configurações', icon: Settings },
 ]
 
 function App() {
+  const [activeSection, setActiveSection] = useState<AppSection>('materials')
+
   return (
     <div className="min-h-screen bg-[#f5f7f8] text-[#17202a]">
       <div className="flex min-h-screen flex-col lg:flex-row">
@@ -44,24 +50,29 @@ function App() {
               const Icon = item.icon
 
               return (
-                <a
+                <button
                   className={cn(
                     'flex min-h-10 shrink-0 items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-[#52616b] transition-colors hover:bg-[#e8eef0] hover:text-[#17202a]',
-                    item.isActive && 'bg-[#dcebed] text-[#163b45]',
+                    item.section === activeSection && 'bg-[#dcebed] text-[#163b45]',
                   )}
-                  href="#"
                   key={item.label}
+                  onClick={() => {
+                    if (item.section !== undefined) {
+                      setActiveSection(item.section as AppSection)
+                    }
+                  }}
+                  type="button"
                 >
                   <Icon className="h-4 w-4" aria-hidden="true" />
                   {item.label}
-                </a>
+                </button>
               )
             })}
           </nav>
         </aside>
 
         <main className="flex-1">
-          <MaterialsPage />
+          {activeSection === 'materials' ? <MaterialsPage /> : <PrintersPage />}
         </main>
       </div>
     </div>

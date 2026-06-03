@@ -41,6 +41,7 @@ Use:
 - Prefer explicit domain types over loose objects.
 - Prefer small components and small functions.
 - Keep shared constants in `src/shared/constants` when values are reused or represent project rules.
+- Keep equivalent features consistent in structure, naming, validation, repository usage, and UI patterns.
 - Keep UI labels in Portuguese.
 - Keep code, types, functions, and file names in English.
 
