@@ -1,8 +1,15 @@
-import { Calculator, Cuboid, History, Layers3, Package, Printer } from 'lucide-react'
+import { AlertTriangle, Calculator, Cuboid, History, Layers3, Package, Printer } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
 import { useRepositories } from '@/app/useRepositories'
-import type { CostCalculation, Material, Printer as PrinterType, PrintProfile, Product } from '@/shared/types'
+import type {
+  CostCalculation,
+  Material,
+  Printer as PrinterType,
+  PrintProfile,
+  Product,
+} from '@/shared/types'
+import { isMaterialLowStock } from '@/shared/utils'
 
 type DashboardData = {
   calculations: CostCalculation[]
@@ -17,12 +24,20 @@ const currencyFormatter = new Intl.NumberFormat('pt-BR', {
   style: 'currency',
 })
 
+const weightFormatter = new Intl.NumberFormat('pt-BR', {
+  maximumFractionDigits: 1,
+})
+
 const emptyDashboardData: DashboardData = {
   calculations: [],
   materials: [],
   printers: [],
   printProfiles: [],
   products: [],
+}
+
+function formatWeight(weightGrams: number | undefined) {
+  return weightGrams === undefined ? '-' : `${weightFormatter.format(weightGrams)} g`
 }
 
 export function DashboardPage() {
@@ -69,6 +84,18 @@ export function DashboardPage() {
     [data.calculations],
   )
 
+  const lowStockMaterials = useMemo(
+    () =>
+      data.materials
+        .filter((material) => material.isActive && isMaterialLowStock(material))
+        .toSorted(
+          (first, second) =>
+            (first.remainingWeightGrams ?? Number.POSITIVE_INFINITY) -
+            (second.remainingWeightGrams ?? Number.POSITIVE_INFINITY),
+        ),
+    [data.materials],
+  )
+
   const metrics = [
     {
       icon: Cuboid,
@@ -104,7 +131,10 @@ export function DashboardPage() {
           const Icon = metric.icon
 
           return (
-            <article className="rounded-md border border-[#d8dee2] bg-white p-4 shadow-sm" key={metric.label}>
+            <article
+              className="rounded-md border border-[#d8dee2] bg-white p-4 shadow-sm"
+              key={metric.label}
+            >
               <Icon className="h-5 w-5 text-[#1f7a78]" aria-hidden="true" />
               <p className="mt-3 text-sm text-[#697782]">{metric.label}</p>
               <p className="mt-1 text-3xl font-semibold text-[#17202a]">{metric.value}</p>
@@ -112,6 +142,30 @@ export function DashboardPage() {
           )
         })}
       </section>
+
+      {lowStockMaterials.length > 0 && (
+        <section className="px-5 md:px-8">
+          <article className="rounded-md border border-[#e5c76b] bg-[#fff8db] p-5 shadow-sm">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-[#8a6100]" aria-hidden="true" />
+              <h2 className="text-lg font-semibold text-[#17202a]">Estoque baixo</h2>
+            </div>
+            <ul className="mt-4 grid gap-2 text-sm text-[#52616b] md:grid-cols-2">
+              {lowStockMaterials.slice(0, 4).map((material) => (
+                <li
+                  className="rounded-md border border-[#efd886] bg-white px-3 py-2"
+                  key={material.id}
+                >
+                  <span className="font-medium text-[#17202a]">{material.name}</span>
+                  <span className="block">
+                    Restante: {formatWeight(material.remainingWeightGrams)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </article>
+        </section>
+      )}
 
       <section className="grid gap-5 px-5 pb-6 md:px-8 lg:grid-cols-2">
         <article className="rounded-md border border-[#d8dee2] bg-white p-5 shadow-sm">
@@ -124,8 +178,13 @@ export function DashboardPage() {
           ) : (
             <div className="mt-4 text-sm text-[#52616b]">
               <p className="font-medium text-[#17202a]">{latestCalculation.name}</p>
-              <p className="mt-2">Custo total: {currencyFormatter.format(latestCalculation.result.totalCost)}</p>
-              <p>Preço sugerido: {currencyFormatter.format(latestCalculation.result.suggestedPrice)}</p>
+              <p className="mt-2">
+                Custo total: {currencyFormatter.format(latestCalculation.result.totalCost)}
+              </p>
+              <p>
+                Preço sugerido:{' '}
+                {currencyFormatter.format(latestCalculation.result.suggestedPrice)}
+              </p>
             </div>
           )}
         </article>

@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Plus, Save, Trash2 } from 'lucide-react'
+import { AlertTriangle, Plus, Save, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 
@@ -14,6 +14,7 @@ import type {
   Product,
 } from '@/shared/types'
 import { defaultSettings } from '@/shared/types'
+import { hasEnoughMaterialStock } from '@/shared/utils'
 
 import { calculateCost, type CostCalculationResult } from './calculateCost'
 import { CalculationBreakdown } from './CalculationBreakdown'
@@ -94,6 +95,9 @@ export function NewCalculationPage() {
   const selectedPrinterValue = useWatch({ control, name: 'printerId' })
   const selectedPrinterId =
     typeof selectedPrinterValue === 'string' ? selectedPrinterValue : undefined
+  const selectedMaterialValue = useWatch({ control, name: 'materialId' })
+  const selectedMaterialId =
+    typeof selectedMaterialValue === 'string' ? selectedMaterialValue : undefined
 
   useEffect(() => {
     let shouldUpdate = true
@@ -179,6 +183,29 @@ export function NewCalculationPage() {
     () => printProfiles.toSorted((first, second) => first.name.localeCompare(second.name)),
     [printProfiles],
   )
+
+  const selectedMaterial = useMemo(
+    () =>
+      selectedMaterialId === undefined || selectedMaterialId === ''
+        ? undefined
+        : findById(materials, selectedMaterialId),
+    [materials, selectedMaterialId],
+  )
+
+  const materialStockWarning = useMemo(() => {
+    if (
+      selectedMaterial === undefined ||
+      result === undefined ||
+      hasEnoughMaterialStock(selectedMaterial, result.totalWeightGrams)
+    ) {
+      return undefined
+    }
+
+    return {
+      remainingWeightGrams: selectedMaterial.remainingWeightGrams,
+      requiredWeightGrams: result.totalWeightGrams,
+    }
+  }, [result, selectedMaterial])
 
   const calculate = useCallback(
     (values: CalculationFormValues) => {
@@ -376,6 +403,23 @@ export function NewCalculationPage() {
                   <span className="block text-xs text-[#b42318]">{errors.materialId.message}</span>
                 )}
               </label>
+
+              {materialStockWarning !== undefined && (
+                <div className="rounded-md border border-[#e5c76b] bg-[#fff8db] p-3 text-sm text-[#52616b] md:col-span-2">
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle className="mt-0.5 h-4 w-4 text-[#8a6100]" aria-hidden="true" />
+                    <div>
+                      <p className="font-medium text-[#17202a]">
+                        O peso calculado passa do estoque restante.
+                      </p>
+                      <p className="mt-1">
+                        Necessário: {materialStockWarning.requiredWeightGrams.toFixed(1)} g |
+                        Restante: {materialStockWarning.remainingWeightGrams?.toFixed(1)} g
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {[
                 ['quantity', 'Quantidade', 1],

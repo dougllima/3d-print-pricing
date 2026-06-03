@@ -22,6 +22,35 @@ describe('domain schemas', () => {
     expect(materialSchema.safeParse({ ...baseMaterial, colorHex: '111827' }).success).toBe(false)
   })
 
+  it('validates optional material stock fields', () => {
+    const baseMaterial = {
+      id: 'material-1',
+      name: 'PLA Preto',
+      type: 'PLA',
+      pricePerKg: 90,
+      isActive: true,
+      createdAt: now,
+      updatedAt: now,
+    }
+
+    expect(
+      materialSchema.safeParse({
+        ...baseMaterial,
+        spoolWeightGrams: 1000,
+        remainingWeightGrams: 400,
+        lowStockThresholdGrams: 150,
+      }).success,
+    ).toBe(true)
+
+    expect(
+      materialSchema.safeParse({
+        ...baseMaterial,
+        spoolWeightGrams: 1000,
+        remainingWeightGrams: 1200,
+      }).success,
+    ).toBe(false)
+  })
+
   it('keeps product data separate from print profile manufacturing data', () => {
     const product = {
       id: 'product-1',

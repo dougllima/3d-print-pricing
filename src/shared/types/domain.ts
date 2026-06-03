@@ -11,6 +11,9 @@ export type Material = {
   colorHex?: string
   supplierColorCode?: string
   pricePerKg: number
+  spoolWeightGrams?: number
+  remainingWeightGrams?: number
+  lowStockThresholdGrams?: number
   notes?: string
   isActive: boolean
   createdAt: string

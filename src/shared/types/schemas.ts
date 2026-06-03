@@ -22,11 +22,23 @@ export const materialSchema = z.object({
   colorHex: z.string().trim().regex(hexColorRegex).optional(),
   supplierColorCode: optionalTextSchema,
   pricePerKg: positiveNumberSchema,
+  spoolWeightGrams: positiveNumberSchema.optional(),
+  remainingWeightGrams: nonNegativeNumberSchema.optional(),
+  lowStockThresholdGrams: nonNegativeNumberSchema.optional(),
   notes: optionalTextSchema,
   isActive: z.boolean(),
   createdAt: dateTimeSchema,
   updatedAt: dateTimeSchema,
-}).strict()
+}).strict().refine(
+  (material) =>
+    material.spoolWeightGrams === undefined ||
+    material.remainingWeightGrams === undefined ||
+    material.remainingWeightGrams <= material.spoolWeightGrams,
+  {
+    message: 'remainingWeightGrams must not be greater than spoolWeightGrams',
+    path: ['remainingWeightGrams'],
+  },
+)
 
 export const printerSchema = z.object({
   id: requiredTextSchema,

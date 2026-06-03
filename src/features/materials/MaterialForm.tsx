@@ -25,6 +25,9 @@ const emptyFormValues: MaterialFormInputValues = {
   colorHex: undefined,
   supplierColorCode: undefined,
   pricePerKg: 0,
+  spoolWeightGrams: undefined,
+  remainingWeightGrams: undefined,
+  lowStockThresholdGrams: undefined,
   notes: undefined,
 }
 
@@ -57,6 +60,9 @@ export function MaterialForm({ material, onCancelEdit, onSubmit }: MaterialFormP
       colorHex: material.colorHex,
       supplierColorCode: material.supplierColorCode,
       pricePerKg: material.pricePerKg,
+      spoolWeightGrams: material.spoolWeightGrams,
+      remainingWeightGrams: material.remainingWeightGrams,
+      lowStockThresholdGrams: material.lowStockThresholdGrams,
       notes: material.notes,
     })
   }, [material, reset])
@@ -158,6 +164,54 @@ export function MaterialForm({ material, onCancelEdit, onSubmit }: MaterialFormP
             className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
             {...register('supplierColorCode')}
           />
+        </label>
+
+        <label className="space-y-1 text-sm font-medium text-[#34434d]">
+          Peso do rolo (g)
+          <input
+            className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
+            min="0"
+            step="0.01"
+            type="number"
+            {...register('spoolWeightGrams', { valueAsNumber: true })}
+          />
+          {errors.spoolWeightGrams && (
+            <span className="block text-xs text-[#b42318]">
+              {errors.spoolWeightGrams.message}
+            </span>
+          )}
+        </label>
+
+        <label className="space-y-1 text-sm font-medium text-[#34434d]">
+          Peso restante (g)
+          <input
+            className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
+            min="0"
+            step="0.01"
+            type="number"
+            {...register('remainingWeightGrams', { valueAsNumber: true })}
+          />
+          {errors.remainingWeightGrams && (
+            <span className="block text-xs text-[#b42318]">
+              {errors.remainingWeightGrams.message}
+            </span>
+          )}
+        </label>
+
+        <label className="space-y-1 text-sm font-medium text-[#34434d]">
+          Alerta de estoque baixo (g)
+          <input
+            className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
+            min="0"
+            step="0.01"
+            type="number"
+            {...register('lowStockThresholdGrams', { valueAsNumber: true })}
+          />
+          {errors.lowStockThresholdGrams && (
+            <span className="block text-xs text-[#b42318]">
+              {errors.lowStockThresholdGrams.message}
+            </span>
+          )}
         </label>
 
         <label className="space-y-1 text-sm font-medium text-[#34434d] md:col-span-2">
