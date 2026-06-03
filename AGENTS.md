@@ -14,6 +14,7 @@ Before implementing features, read these documents:
 - `docs/DOMAIN_MODEL.md`
 - `docs/CALCULATION_RULES.md`
 - `docs/IMPLEMENTATION_PLAN.md`
+- `docs/CODEX_TASKS.md`
 
 ## Tech stack
 

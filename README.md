@@ -383,7 +383,7 @@ Executa a análise estática do código.
 
 * O MVP será focado apenas em FDM.
 * Produto e Impressão são entidades separadas.
-* A interface usa o termo “Impressões”.
+* A interface usa o termo "Impressões".
 * O código usa o termo `PrintProfile`.
 * O sistema deve mostrar o máximo possível de detalhes de custo.
 * Acabamento é opcional.

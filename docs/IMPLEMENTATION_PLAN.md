@@ -1,6 +1,6 @@
 # Implementation Plan
 
-## Phase 1 — Project setup
+## Phase 1 - Project setup
 
 Tasks:
 
@@ -18,7 +18,7 @@ Suggested commit:
 chore: setup project foundation
 ```
 
-## Phase 2 — Domain and calculation engine
+## Phase 2 - Domain and calculation engine
 
 Tasks:
 
@@ -34,7 +34,7 @@ Suggested commit:
 feat: add domain model and calculation engine
 ```
 
-## Phase 3 — Storage abstraction
+## Phase 3 - Storage abstraction
 
 Tasks:
 
@@ -50,7 +50,7 @@ Suggested commit:
 feat: add local storage repositories
 ```
 
-## Phase 4 — Materials
+## Phase 4 - Materials
 
 Tasks:
 
@@ -66,7 +66,7 @@ Suggested commit:
 feat: add material management
 ```
 
-## Phase 5 — Printers
+## Phase 5 - Printers
 
 Tasks:
 
@@ -81,7 +81,7 @@ Suggested commit:
 feat: add printer management
 ```
 
-## Phase 6 — Products
+## Phase 6 - Products
 
 Tasks:
 
@@ -96,7 +96,7 @@ Suggested commit:
 feat: add product management
 ```
 
-## Phase 7 — Print profiles
+## Phase 7 - Print profiles
 
 Tasks:
 
@@ -112,7 +112,7 @@ Suggested commit:
 feat: add print profile management
 ```
 
-## Phase 8 — New calculation
+## Phase 8 - New calculation
 
 Tasks:
 
@@ -130,7 +130,7 @@ Suggested commit:
 feat: add cost calculation flow
 ```
 
-## Phase 9 — History and dashboard
+## Phase 9 - History and dashboard
 
 Tasks:
 
@@ -145,7 +145,7 @@ Suggested commit:
 feat: add history and dashboard
 ```
 
-## Phase 10 — Polish
+## Phase 10 - Polish
 
 Tasks:
 

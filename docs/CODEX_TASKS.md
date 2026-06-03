@@ -1,12 +1,12 @@
 # Codex Tasks
 
-## Task 1 — Inspect project
+## Task 1 - Inspect project
 
 ```txt
 Read AGENTS.md and all files in docs/. Then inspect the current project structure. Summarize what exists, what is missing, and propose the next safest implementation step. Do not change files yet.
 ```
 
-## Task 2 — Setup Tailwind and shadcn
+## Task 2 - Setup Tailwind and shadcn
 
 ```txt
 Read AGENTS.md and docs/IMPLEMENTATION_PLAN.md.
@@ -23,7 +23,7 @@ Requirements:
 - summarize changed files.
 ```
 
-## Task 3 — Create domain model
+## Task 3 - Create domain model
 
 ```txt
 Read AGENTS.md, docs/DOMAIN_MODEL.md, and docs/CALCULATION_RULES.md.
@@ -41,7 +41,7 @@ Requirements:
 - summarize changed files.
 ```
 
-## Task 4 — Implement calculation service
+## Task 4 - Implement calculation service
 
 ```txt
 Read AGENTS.md and docs/CALCULATION_RULES.md.
@@ -58,7 +58,7 @@ Requirements:
 - summarize changed files and test results.
 ```
 
-## Task 5 — Implement storage abstraction
+## Task 5 - Implement storage abstraction
 
 ```txt
 Read AGENTS.md, docs/DOMAIN_MODEL.md, and docs/IMPLEMENTATION_PLAN.md.
@@ -75,7 +75,7 @@ Requirements:
 - summarize changed files.
 ```
 
-## Task 6 — Implement materials feature
+## Task 6 - Implement materials feature
 
 ```txt
 Read AGENTS.md and docs/DOMAIN_MODEL.md.
@@ -94,7 +94,7 @@ Requirements:
 - summarize changed files.
 ```
 
-## Task 7 — Implement printers feature
+## Task 7 - Implement printers feature
 
 ```txt
 Read AGENTS.md and docs/DOMAIN_MODEL.md.
@@ -112,7 +112,7 @@ Requirements:
 - summarize changed files.
 ```
 
-## Task 8 — Implement products and print profiles
+## Task 8 - Implement products and print profiles
 
 ```txt
 Read AGENTS.md and docs/DOMAIN_MODEL.md.
@@ -129,7 +129,7 @@ Requirements:
 - summarize changed files.
 ```
 
-## Task 9 — Implement new calculation flow
+## Task 9 - Implement new calculation flow
 
 ```txt
 Read AGENTS.md, docs/DOMAIN_MODEL.md, and docs/CALCULATION_RULES.md.
@@ -147,7 +147,7 @@ Requirements:
 - summarize changed files.
 ```
 
-## Task 10 — Review implementation
+## Task 10 - Review implementation
 
 ```txt
 Read AGENTS.md and docs/.
