@@ -12,33 +12,47 @@ import {
 import { useState } from 'react'
 
 import { NewCalculationPage } from '@/features/calculations'
+import { DashboardPage } from '@/features/dashboard'
+import { HistoryPage } from '@/features/history'
 import { MaterialsPage } from '@/features/materials'
 import { PrintProfilesPage } from '@/features/print-profiles'
 import { PrintersPage } from '@/features/printers'
 import { ProductsPage } from '@/features/products'
+import { SettingsPage } from '@/features/settings'
 import { cn } from '@/shared/utils'
 
-type AppSection = 'calculations' | 'materials' | 'printProfiles' | 'printers' | 'products'
+type AppSection =
+  | 'calculations'
+  | 'dashboard'
+  | 'history'
+  | 'materials'
+  | 'printProfiles'
+  | 'printers'
+  | 'products'
+  | 'settings'
 
 const navigationItems = [
-  { label: 'Dashboard', icon: BarChart3 },
+  { label: 'Dashboard', icon: BarChart3, section: 'dashboard' },
   { label: 'Novo cálculo', icon: Calculator, section: 'calculations' },
   { label: 'Produtos', icon: Package, section: 'products' },
   { label: 'Impressões', icon: Layers3, section: 'printProfiles' },
   { label: 'Materiais', icon: Cuboid, section: 'materials' },
   { label: 'Impressoras', icon: Printer, section: 'printers' },
-  { label: 'Histórico', icon: History },
-  { label: 'Configurações', icon: Settings },
+  { label: 'Histórico', icon: History, section: 'history' },
+  { label: 'Configurações', icon: Settings, section: 'settings' },
 ]
 
 function App() {
-  const [activeSection, setActiveSection] = useState<AppSection>('materials')
+  const [activeSection, setActiveSection] = useState<AppSection>('dashboard')
   const ActivePage = {
     calculations: NewCalculationPage,
+    dashboard: DashboardPage,
+    history: HistoryPage,
     materials: MaterialsPage,
     printProfiles: PrintProfilesPage,
     printers: PrintersPage,
     products: ProductsPage,
+    settings: SettingsPage,
   }[activeSection]
 
   return (

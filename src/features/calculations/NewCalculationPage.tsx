@@ -91,6 +91,9 @@ export function NewCalculationPage() {
   const selectedPrintProfileValue = useWatch({ control, name: 'printProfileId' })
   const selectedPrintProfileId =
     typeof selectedPrintProfileValue === 'string' ? selectedPrintProfileValue : undefined
+  const selectedPrinterValue = useWatch({ control, name: 'printerId' })
+  const selectedPrinterId =
+    typeof selectedPrinterValue === 'string' ? selectedPrinterValue : undefined
 
   useEffect(() => {
     let shouldUpdate = true
@@ -158,6 +161,19 @@ export function NewCalculationPage() {
     setValue('purgeWeightGrams', printProfile.purgeWeightGrams)
     setValue('otherWasteGrams', printProfile.otherWasteGrams)
   }, [printProfiles, selectedPrintProfileId, setValue])
+
+  useEffect(() => {
+    if (selectedPrinterId === undefined || selectedPrinterId === '') {
+      return
+    }
+
+    const printer = findById(printers, selectedPrinterId)
+
+    setValue(
+      'failureRatePercent',
+      printer?.defaultFailureRatePercent ?? settings.defaultFailureRatePercent,
+    )
+  }, [printers, selectedPrinterId, setValue, settings.defaultFailureRatePercent])
 
   const activePrintProfiles = useMemo(
     () => printProfiles.toSorted((first, second) => first.name.localeCompare(second.name)),
