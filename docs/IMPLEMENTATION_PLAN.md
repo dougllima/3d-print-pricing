@@ -57,6 +57,8 @@ Tasks:
 - Create materials page.
 - Create material form.
 - Add optional HEX color picker.
+- Add optional stock fields.
+- Add material stock status.
 - Add material list.
 - Add create/edit/archive behavior.
 
@@ -64,6 +66,25 @@ Suggested commit:
 
 ```txt
 feat: add material management
+```
+
+## Phase 4.1 - Material stock tracking
+
+Tasks:
+
+- Add nominal spool weight field.
+- Add remaining filament weight field.
+- Add low stock threshold field.
+- Validate remaining weight against spool weight.
+- Show stock status in materials list.
+- Show low-stock summary in dashboard.
+- Warn in calculation flow when required material weight exceeds remaining stock.
+- Do not automatically subtract material stock when saving calculations.
+
+Suggested commit:
+
+```txt
+feat: add material stock tracking
 ```
 
 ## Phase 5 - Printers

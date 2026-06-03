@@ -55,6 +55,8 @@ Use:
 - A PrintProfile is a specific way to manufacture a product.
 - A CostCalculation is a snapshot and must not change when material or printer data changes later.
 - Material color HEX/RGB is optional.
+- Material stock tracking is optional and measured in grams.
+- Saving calculations must not automatically subtract material stock in v1.1.
 - Finishing is optional and calculated by labor hours plus extra material cost.
 - Suggested price uses real margin over final price: `totalCost / (1 - margin)`.
 

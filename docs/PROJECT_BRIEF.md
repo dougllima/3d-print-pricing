@@ -15,6 +15,7 @@ The app should help the user:
 - avoid waste and incorrect pricing;
 - maintain a catalog of products;
 - maintain a catalog of materials;
+- track remaining filament quantity for materials;
 - maintain a catalog of printers;
 - save reusable print profiles;
 - save historical cost calculations.
@@ -31,6 +32,7 @@ Included:
 
 - FDM only.
 - Material registration.
+- Basic material stock tracking.
 - Printer registration.
 - Global settings.
 - Product registration.
@@ -51,6 +53,7 @@ Not included in MVP v1:
 - Login.
 - PDF generation.
 - Inventory control.
+- Full inventory control with stock movements.
 - Charts.
 - Formal quote generation.
 - Copy-to-clipboard quote button.
@@ -59,7 +62,9 @@ Not included in MVP v1:
 
 ### Material
 
-A specific filament spool/type, including brand, type, color and price per kg.
+A specific filament spool/type, including brand, type, color, price per kg and optional stock information.
+
+Material stock tracking is intentionally lightweight in v1.1. It helps the user know whether there is enough filament available before printing, but it is not a complete inventory system.
 
 ### Printer
 
@@ -78,6 +83,20 @@ A product can have multiple print profiles.
 ### CostCalculation
 
 A saved calculation result. It must store snapshots of the values used at calculation time.
+
+### MaterialStock
+
+Material stock data belongs to Material in v1.1.
+
+It should track:
+
+- nominal spool weight;
+- remaining filament weight;
+- low stock threshold.
+
+The app should warn when a calculation may require more material than the remaining stock.
+
+Saving a calculation should not automatically reduce material stock in v1.1. Automatic consumption should be explicit in a future version.
 
 ## UI language
 

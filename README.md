@@ -19,6 +19,7 @@ O objetivo do projeto é criar um MVP funcional para uso pessoal e evolução co
 * evitar precificação incorreta;
 * entender desperdícios de material;
 * manter catálogo de materiais;
+* acompanhar a quantidade restante de filamento;
 * manter cadastro de impressoras;
 * cadastrar produtos recorrentes;
 * salvar diferentes impressões para o mesmo produto;
@@ -71,7 +72,12 @@ Um material pode ter:
 * código HEX/RGB opcional;
 * código do fornecedor;
 * preço por kg;
+* peso nominal do rolo;
+* peso restante;
+* limite para alerta de estoque baixo;
 * observações.
+
+O controle de estoque de material será leve na v1.1: o objetivo é saber se há filamento suficiente e destacar materiais em baixa, sem implementar um sistema completo de movimentações.
 
 ---
 
@@ -200,6 +206,7 @@ Assim, o lucro estimado seria R$ 40,00 e a margem real seria 40%.
 ### Incluído na primeira versão
 
 * Cadastro de materiais
+* Controle leve de estoque de materiais
 * Cadastro de impressoras
 * Cadastro de produtos
 * Cadastro de impressões
@@ -220,7 +227,7 @@ Assim, o lucro estimado seria R$ 40,00 e a margem real seria 40%.
 * Geração de PDF
 * Backend
 * Login
-* Controle de estoque
+* Controle completo de estoque com movimentações
 * Gráficos
 * Orçamentos formais para envio
 * Integração com slicers
@@ -356,6 +363,7 @@ Executa a análise estática do código.
 * [ ] Testes unitários das fórmulas
 * [ ] Camada de storage local
 * [ ] CRUD de materiais
+* [ ] Controle leve de estoque de materiais
 * [ ] CRUD de impressoras
 * [ ] CRUD de produtos
 * [ ] CRUD de impressões
@@ -372,6 +380,8 @@ Executa a análise estática do código.
 * [ ] Geração de PDF
 * [ ] Suporte a impressão em resina
 * [ ] Controle de estoque
+* [ ] Baixa automática de filamento com confirmação
+* [ ] Alertas avançados de estoque
 * [ ] Cadastro de clientes
 * [ ] Relatórios e gráficos
 * [ ] Comparação entre materiais
@@ -388,6 +398,8 @@ Executa a análise estática do código.
 * O sistema deve mostrar o máximo possível de detalhes de custo.
 * Acabamento é opcional.
 * Cor HEX/RGB do material é opcional.
+* Estoque de material é opcional e medido em gramas.
+* Salvar um cálculo não reduz estoque automaticamente na v1.1.
 * Histórico deve salvar snapshots.
 * Preço sugerido usa margem real sobre o preço final.
 * A aplicação começa local, mas preparada para backend futuro.

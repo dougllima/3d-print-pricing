@@ -207,6 +207,21 @@ If `defaultMinimumPrice` is configured and suggested price is lower than it, the
 
 Do not silently replace the suggested price unless the user explicitly enables this behavior later.
 
+## Material stock warning
+
+If the selected material has `remainingWeightGrams` configured, the UI should compare it with the material weight required by the calculation.
+
+```txt
+requiredMaterialWeightGrams =
+  totalWeightGramsForQuantity
+```
+
+If `requiredMaterialWeightGrams` is greater than `remainingWeightGrams`, the UI should show a warning.
+
+If `lowStockThresholdGrams` is configured and `remainingWeightGrams` is lower than or equal to it, the material should be marked as low stock.
+
+Saving a calculation must not automatically subtract filament from `remainingWeightGrams` in v1.1. Automatic stock consumption should be introduced later as an explicit user action or setting.
+
 ## Rounding
 
 Business logic should avoid aggressive rounding internally.

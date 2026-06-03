@@ -94,6 +94,26 @@ Requirements:
 - summarize changed files.
 ```
 
+## Task 6.1 - Implement material stock tracking
+
+```txt
+Read AGENTS.md, docs/DOMAIN_MODEL.md, and docs/CALCULATION_RULES.md.
+
+Implement lightweight stock tracking for Materials.
+
+Requirements:
+- UI labels in Portuguese;
+- add optional spool weight, remaining weight and low-stock threshold fields;
+- validate stock fields with Zod and React Hook Form;
+- remaining weight must not be greater than spool weight when both are provided;
+- show stock status in the material list;
+- show low-stock information in the dashboard;
+- show a warning in the calculation flow when required material weight exceeds remaining stock;
+- do not automatically subtract stock when saving calculations;
+- use repository abstraction;
+- summarize changed files.
+```
+
 ## Task 7 - Implement printers feature
 
 ```txt
