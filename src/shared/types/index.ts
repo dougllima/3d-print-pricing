@@ -8,6 +8,8 @@ export {
   type MaterialType,
   type Printer,
   type PrintProfile,
+  type PrintProfileMaterialUsage,
+  type PrintProfileRun,
   type Product,
 } from './domain'
 
@@ -21,6 +23,8 @@ export {
   materialSchema,
   materialTypeSchema,
   printerSchema,
+  printProfileMaterialUsageSchema,
+  printProfileRunSchema,
   printProfileSchema,
   productSchema,
 } from './schemas'

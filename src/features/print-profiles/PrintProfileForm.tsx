@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Save, X } from 'lucide-react'
+import { Plus, Save, Trash2, X } from 'lucide-react'
 import { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { useFieldArray, useForm, type Control, type UseFormRegister } from 'react-hook-form'
 
 import type { Material, Printer, PrintProfile, Product } from '@/shared/types'
 
@@ -20,22 +20,173 @@ type PrintProfileFormProps = {
   products: Product[]
 }
 
+type RunMaterialsFieldsProps = {
+  control: Control<PrintProfileFormInputValues>
+  materials: Material[]
+  register: UseFormRegister<PrintProfileFormInputValues>
+  runIndex: number
+}
+
+type MaterialWeightFieldName =
+  | 'modelWeightGrams'
+  | 'supportWeightGrams'
+  | 'purgeWeightGrams'
+  | 'otherWasteGrams'
+
+const materialWeightFields: Array<{
+  fieldName: MaterialWeightFieldName
+  label: string
+}> = [
+  { fieldName: 'modelWeightGrams', label: 'Peso do modelo (g)' },
+  { fieldName: 'supportWeightGrams', label: 'Suportes (g)' },
+  { fieldName: 'purgeWeightGrams', label: 'Purga (g)' },
+  { fieldName: 'otherWasteGrams', label: 'Outros desperdícios (g)' },
+]
+
+function createId() {
+  return crypto.randomUUID()
+}
+
+function createEmptyMaterialUsage() {
+  return {
+    id: createId(),
+    materialId: '',
+    modelWeightGrams: 0,
+    supportWeightGrams: 0,
+    purgeWeightGrams: 0,
+    otherWasteGrams: 0,
+  }
+}
+
+function createEmptyRun() {
+  return {
+    id: createId(),
+    quantity: 1,
+    printTimeHours: 0,
+    printTimeMinutesPart: 0,
+    materials: [createEmptyMaterialUsage()],
+  }
+}
+
+function toFormValues(printProfile: PrintProfile): PrintProfileFormInputValues {
+  return {
+    productId: printProfile.productId,
+    name: printProfile.name,
+    printerId: printProfile.printerId,
+    slicerProfileName: printProfile.slicerProfileName,
+    layerHeightMm: printProfile.layerHeightMm,
+    nozzleDiameterMm: printProfile.nozzleDiameterMm,
+    infillPercent: printProfile.infillPercent,
+    wallLoops: printProfile.wallLoops,
+    printRuns: printProfile.printRuns.map((printRun) => ({
+      id: printRun.id,
+      quantity: printRun.quantity,
+      printTimeHours: Math.floor(printRun.printTimeMinutes / 60),
+      printTimeMinutesPart: printRun.printTimeMinutes % 60,
+      materials: printRun.materials.map((materialUsage) => ({
+        id: materialUsage.id,
+        materialId: materialUsage.materialId,
+        modelWeightGrams: materialUsage.modelWeightGrams,
+        supportWeightGrams: materialUsage.supportWeightGrams,
+        purgeWeightGrams: materialUsage.purgeWeightGrams,
+        otherWasteGrams: materialUsage.otherWasteGrams,
+      })),
+    })),
+    notes: printProfile.notes,
+  }
+}
+
 const emptyFormValues: PrintProfileFormInputValues = {
   productId: undefined,
   name: '',
   printerId: '',
-  materialId: '',
   slicerProfileName: undefined,
   layerHeightMm: undefined,
   nozzleDiameterMm: undefined,
   infillPercent: undefined,
   wallLoops: undefined,
-  printTimeHours: 0,
-  modelWeightGrams: 0,
-  supportWeightGrams: 0,
-  purgeWeightGrams: 0,
-  otherWasteGrams: 0,
+  printRuns: [createEmptyRun()],
   notes: undefined,
+}
+
+function RunMaterialsFields({
+  control,
+  materials,
+  register,
+  runIndex,
+}: RunMaterialsFieldsProps) {
+  const {
+    fields: materialFields,
+    append,
+    remove,
+  } = useFieldArray({
+    control,
+    name: `printRuns.${runIndex}.materials`,
+  })
+
+  return (
+    <div className="mt-4 space-y-3">
+      {materialFields.map((materialField, materialIndex) => (
+        <div
+          className="rounded-md border border-[#edf1f3] bg-white p-3"
+          key={materialField.id}
+        >
+          <div className="grid gap-3 md:grid-cols-2">
+            <label className="space-y-1 text-sm font-medium text-[#34434d] md:col-span-2">
+              Material
+              <select
+                className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
+                {...register(`printRuns.${runIndex}.materials.${materialIndex}.materialId`)}
+              >
+                <option value="">Selecione</option>
+                {materials.map((material) => (
+                  <option key={material.id} value={material.id}>
+                    {material.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            {materialWeightFields.map(({ fieldName, label }) => (
+              <label className="space-y-1 text-sm font-medium text-[#34434d]" key={fieldName}>
+                {label}
+                <input
+                  className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
+                  min="0"
+                  step="0.01"
+                  type="number"
+                  {...register(
+                    `printRuns.${runIndex}.materials.${materialIndex}.${fieldName}`,
+                    { valueAsNumber: true },
+                  )}
+                />
+              </label>
+            ))}
+          </div>
+
+          {materialFields.length > 1 && (
+            <button
+              className="mt-3 inline-flex items-center gap-2 rounded-md border border-[#f0b4ad] bg-white px-3 py-2 text-sm font-medium text-[#b42318]"
+              onClick={() => remove(materialIndex)}
+              type="button"
+            >
+              <Trash2 className="h-4 w-4" aria-hidden="true" />
+              Remover material
+            </button>
+          )}
+        </div>
+      ))}
+
+      <button
+        className="inline-flex items-center gap-2 rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm font-medium text-[#34434d]"
+        onClick={() => append(createEmptyMaterialUsage())}
+        type="button"
+      >
+        <Plus className="h-4 w-4" aria-hidden="true" />
+        Adicionar material
+      </button>
+    </div>
+  )
 }
 
 export function PrintProfileForm({
@@ -47,6 +198,7 @@ export function PrintProfileForm({
   products,
 }: PrintProfileFormProps) {
   const {
+    control,
     formState: { errors, isSubmitting },
     handleSubmit,
     register,
@@ -56,29 +208,22 @@ export function PrintProfileForm({
     defaultValues: emptyFormValues,
   })
 
+  const {
+    fields: runFields,
+    append,
+    remove,
+  } = useFieldArray({
+    control,
+    name: 'printRuns',
+  })
+
   useEffect(() => {
     if (printProfile === undefined) {
       reset(emptyFormValues)
       return
     }
 
-    reset({
-      productId: printProfile.productId,
-      name: printProfile.name,
-      printerId: printProfile.printerId,
-      materialId: printProfile.materialId,
-      slicerProfileName: printProfile.slicerProfileName,
-      layerHeightMm: printProfile.layerHeightMm,
-      nozzleDiameterMm: printProfile.nozzleDiameterMm,
-      infillPercent: printProfile.infillPercent,
-      wallLoops: printProfile.wallLoops,
-      printTimeHours: printProfile.printTimeHours,
-      modelWeightGrams: printProfile.modelWeightGrams,
-      supportWeightGrams: printProfile.supportWeightGrams,
-      purgeWeightGrams: printProfile.purgeWeightGrams,
-      otherWasteGrams: printProfile.otherWasteGrams,
-      notes: printProfile.notes,
-    })
+    reset(toFormValues(printProfile))
   }, [printProfile, reset])
 
   async function submit(values: PrintProfileFormValues) {
@@ -141,24 +286,6 @@ export function PrintProfileForm({
         </label>
 
         <label className="space-y-1 text-sm font-medium text-[#34434d]">
-          Material
-          <select
-            className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
-            {...register('materialId')}
-          >
-            <option value="">Selecione</option>
-            {materials.map((material) => (
-              <option key={material.id} value={material.id}>
-                {material.name}
-              </option>
-            ))}
-          </select>
-          {errors.materialId && (
-            <span className="block text-xs text-[#b42318]">{errors.materialId.message}</span>
-          )}
-        </label>
-
-        <label className="space-y-1 text-sm font-medium text-[#34434d]">
           Perfil do slicer
           <input
             className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
@@ -167,21 +294,7 @@ export function PrintProfileForm({
         </label>
 
         <label className="space-y-1 text-sm font-medium text-[#34434d]">
-          Tempo de impressão
-          <input
-            className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
-            min="0"
-            step="0.01"
-            type="number"
-            {...register('printTimeHours', { valueAsNumber: true })}
-          />
-          {errors.printTimeHours && (
-            <span className="block text-xs text-[#b42318]">{errors.printTimeHours.message}</span>
-          )}
-        </label>
-
-        <label className="space-y-1 text-sm font-medium text-[#34434d]">
-          Altura de camada
+          Altura de camada (mm)
           <input
             className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
             min="0"
@@ -192,7 +305,7 @@ export function PrintProfileForm({
         </label>
 
         <label className="space-y-1 text-sm font-medium text-[#34434d]">
-          Bico
+          Bico (mm)
           <input
             className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
             min="0"
@@ -203,7 +316,7 @@ export function PrintProfileForm({
         </label>
 
         <label className="space-y-1 text-sm font-medium text-[#34434d]">
-          Infill
+          Infill (%)
           <input
             className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
             min="0"
@@ -223,59 +336,93 @@ export function PrintProfileForm({
             {...register('wallLoops', { valueAsNumber: true })}
           />
         </label>
-
-        <label className="space-y-1 text-sm font-medium text-[#34434d]">
-          Peso do modelo
-          <input
-            className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
-            min="0"
-            step="0.01"
-            type="number"
-            {...register('modelWeightGrams', { valueAsNumber: true })}
-          />
-        </label>
-
-        <label className="space-y-1 text-sm font-medium text-[#34434d]">
-          Suportes
-          <input
-            className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
-            min="0"
-            step="0.01"
-            type="number"
-            {...register('supportWeightGrams', { valueAsNumber: true })}
-          />
-        </label>
-
-        <label className="space-y-1 text-sm font-medium text-[#34434d]">
-          Purga
-          <input
-            className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
-            min="0"
-            step="0.01"
-            type="number"
-            {...register('purgeWeightGrams', { valueAsNumber: true })}
-          />
-        </label>
-
-        <label className="space-y-1 text-sm font-medium text-[#34434d]">
-          Outros desperdícios
-          <input
-            className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
-            min="0"
-            step="0.01"
-            type="number"
-            {...register('otherWasteGrams', { valueAsNumber: true })}
-          />
-        </label>
-
-        <label className="space-y-1 text-sm font-medium text-[#34434d] md:col-span-2">
-          Observações
-          <textarea
-            className="mt-1 min-h-20 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
-            {...register('notes')}
-          />
-        </label>
       </div>
+
+      <div className="mt-5 space-y-4">
+        <div className="flex items-center justify-between gap-3">
+          <h3 className="text-sm font-semibold uppercase text-[#697782]">Quantidades</h3>
+          <button
+            className="inline-flex items-center gap-2 rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm font-medium text-[#34434d]"
+            onClick={() => append(createEmptyRun())}
+            type="button"
+          >
+            <Plus className="h-4 w-4" aria-hidden="true" />
+            Adicionar quantidade
+          </button>
+        </div>
+
+        {runFields.map((runField, runIndex) => (
+          <section className="rounded-md border border-[#d8dee2] bg-[#fbfcfd] p-4" key={runField.id}>
+            <div className="grid gap-4 md:grid-cols-3">
+              <label className="space-y-1 text-sm font-medium text-[#34434d]">
+                Quantidade no plate
+                <input
+                  className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
+                  min="1"
+                  step="1"
+                  type="number"
+                  {...register(`printRuns.${runIndex}.quantity`, { valueAsNumber: true })}
+                />
+              </label>
+
+              <label className="space-y-1 text-sm font-medium text-[#34434d]">
+                Horas
+                <input
+                  className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
+                  min="0"
+                  step="1"
+                  type="number"
+                  {...register(`printRuns.${runIndex}.printTimeHours`, { valueAsNumber: true })}
+                />
+              </label>
+
+              <label className="space-y-1 text-sm font-medium text-[#34434d]">
+                Minutos
+                <input
+                  className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
+                  max="59"
+                  min="0"
+                  step="1"
+                  type="number"
+                  {...register(`printRuns.${runIndex}.printTimeMinutesPart`, {
+                    valueAsNumber: true,
+                  })}
+                />
+              </label>
+            </div>
+
+            <RunMaterialsFields
+              control={control}
+              materials={materials}
+              register={register}
+              runIndex={runIndex}
+            />
+
+            {runFields.length > 1 && (
+              <button
+                className="mt-4 inline-flex items-center gap-2 rounded-md border border-[#f0b4ad] bg-white px-3 py-2 text-sm font-medium text-[#b42318]"
+                onClick={() => remove(runIndex)}
+                type="button"
+              >
+                <Trash2 className="h-4 w-4" aria-hidden="true" />
+                Remover quantidade
+              </button>
+            )}
+          </section>
+        ))}
+
+        {errors.printRuns?.message && (
+          <span className="block text-xs text-[#b42318]">{errors.printRuns.message}</span>
+        )}
+      </div>
+
+      <label className="mt-5 block space-y-1 text-sm font-medium text-[#34434d]">
+        Observações
+        <textarea
+          className="mt-1 min-h-20 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
+          {...register('notes')}
+        />
+      </label>
 
       <div className="mt-5 flex flex-wrap gap-2">
         <button

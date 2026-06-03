@@ -167,6 +167,27 @@ Requirements:
 - summarize changed files.
 ```
 
+## Task 9.1 - Refine print profiles as production configurations
+
+```txt
+Read AGENTS.md, docs/DOMAIN_MODEL.md, and docs/CALCULATION_RULES.md.
+
+Refactor PrintProfile so Impressões represent real production configurations.
+
+Requirements:
+- Product remains independent from materials, printer, weights and slicer settings;
+- PrintProfile belongs to a Product optionally and one Printer;
+- PrintProfile supports one or more quantity-specific print runs;
+- each print run supports one or more materials;
+- each material usage stores model, support, purge and other waste weights in grams;
+- print time must be stored in minutes and collected as hours + minutes in the UI;
+- saved print runs use slicer totals directly and must not multiply weights/time by quantity again;
+- show generated cost and suggested price inside the Impressões list;
+- keep standalone calculation available only as an optional simulation flow;
+- keep repository abstraction;
+- update tests and summarize changed files.
+```
+
 ## Task 10 - Review implementation
 
 ```txt

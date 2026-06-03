@@ -8,17 +8,29 @@ describe('printProfileFormSchema', () => {
       productId: '',
       name: 'PLA Preto - 0.2mm',
       printerId: 'printer-1',
-      materialId: 'material-1',
       slicerProfileName: '',
       layerHeightMm: 0.2,
       nozzleDiameterMm: 0.4,
       infillPercent: 15,
       wallLoops: 3,
-      printTimeHours: 2.5,
-      modelWeightGrams: 42,
-      supportWeightGrams: 0,
-      purgeWeightGrams: 0,
-      otherWasteGrams: 0,
+      printRuns: [
+        {
+          id: 'run-1',
+          quantity: 1,
+          printTimeHours: 2,
+          printTimeMinutesPart: 30,
+          materials: [
+            {
+              id: 'usage-1',
+              materialId: 'material-1',
+              modelWeightGrams: 42,
+              supportWeightGrams: 0,
+              purgeWeightGrams: 0,
+              otherWasteGrams: 0,
+            },
+          ],
+        },
+      ],
       notes: '',
     })
 
@@ -31,12 +43,24 @@ describe('printProfileFormSchema', () => {
     const result = printProfileFormSchema.safeParse({
       name: 'PLA Preto - 0.2mm',
       printerId: '',
-      materialId: '',
-      printTimeHours: 2.5,
-      modelWeightGrams: 42,
-      supportWeightGrams: 0,
-      purgeWeightGrams: 0,
-      otherWasteGrams: 0,
+      printRuns: [
+        {
+          id: 'run-1',
+          quantity: 1,
+          printTimeHours: 2,
+          printTimeMinutesPart: 30,
+          materials: [
+            {
+              id: 'usage-1',
+              materialId: '',
+              modelWeightGrams: 42,
+              supportWeightGrams: 0,
+              purgeWeightGrams: 0,
+              otherWasteGrams: 0,
+            },
+          ],
+        },
+      ],
     })
 
     expect(result.success).toBe(false)

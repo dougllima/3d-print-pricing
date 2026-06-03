@@ -66,28 +66,78 @@ export const productSchema = z.object({
   updatedAt: dateTimeSchema,
 }).strict()
 
-export const printProfileSchema = z.object({
+export const printProfileMaterialUsageSchema = z.object({
+  id: requiredTextSchema,
+  materialId: requiredTextSchema,
+  modelWeightGrams: nonNegativeNumberSchema,
+  supportWeightGrams: nonNegativeNumberSchema.default(0),
+  purgeWeightGrams: nonNegativeNumberSchema.default(0),
+  otherWasteGrams: nonNegativeNumberSchema.default(0),
+}).strict()
+
+export const printProfileRunSchema = z.object({
+  id: requiredTextSchema,
+  quantity: z.number().int().positive(),
+  printTimeMinutes: z.number().int().nonnegative(),
+  materials: z.array(printProfileMaterialUsageSchema).min(1),
+}).strict()
+
+const legacyPrintProfileSchema = z.object({
   id: requiredTextSchema,
   productId: optionalTextSchema,
   name: requiredTextSchema,
   printerId: requiredTextSchema,
-  materialId: requiredTextSchema,
+  materialId: optionalTextSchema,
   slicerProfileName: optionalTextSchema,
   layerHeightMm: positiveNumberSchema.optional(),
   nozzleDiameterMm: positiveNumberSchema.optional(),
   infillPercent: percentSchema.optional(),
   wallLoops: z.number().int().nonnegative().optional(),
-  printTimeHours: nonNegativeNumberSchema,
-  modelWeightGrams: nonNegativeNumberSchema,
-  supportWeightGrams: nonNegativeNumberSchema.default(0),
-  purgeWeightGrams: nonNegativeNumberSchema.default(0),
-  otherWasteGrams: nonNegativeNumberSchema.default(0),
+  printTimeHours: nonNegativeNumberSchema.optional(),
+  modelWeightGrams: nonNegativeNumberSchema.optional(),
+  supportWeightGrams: nonNegativeNumberSchema.optional(),
+  purgeWeightGrams: nonNegativeNumberSchema.optional(),
+  otherWasteGrams: nonNegativeNumberSchema.optional(),
+  printRuns: z.array(printProfileRunSchema).optional(),
   notes: optionalTextSchema,
   isFavorite: z.boolean().optional(),
   isActive: z.boolean(),
   createdAt: dateTimeSchema,
   updatedAt: dateTimeSchema,
 }).strict()
+
+export const printProfileSchema = legacyPrintProfileSchema.transform((printProfile) => {
+  if (printProfile.printRuns !== undefined) {
+    return {
+      ...printProfile,
+      printRuns: printProfile.printRuns,
+    }
+  }
+
+  return {
+    ...printProfile,
+    printRuns:
+      printProfile.materialId === undefined
+        ? []
+        : [
+            {
+              id: `${printProfile.id}-run-1`,
+              quantity: 1,
+              printTimeMinutes: Math.round((printProfile.printTimeHours ?? 0) * 60),
+              materials: [
+                {
+                  id: `${printProfile.id}-material-1`,
+                  materialId: printProfile.materialId,
+                  modelWeightGrams: printProfile.modelWeightGrams ?? 0,
+                  supportWeightGrams: printProfile.supportWeightGrams ?? 0,
+                  purgeWeightGrams: printProfile.purgeWeightGrams ?? 0,
+                  otherWasteGrams: printProfile.otherWasteGrams ?? 0,
+                },
+              ],
+            },
+          ],
+  }
+})
 
 export const finishingTaskSchema = z.object({
   id: requiredTextSchema,

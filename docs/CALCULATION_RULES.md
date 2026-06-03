@@ -233,3 +233,22 @@ Recommended:
 - calculations return raw numbers;
 - UI formats BRL currency;
 - tests use approximate comparisons where needed.
+
+## Saved print runs
+
+Saved print runs use slicer totals for a specific quantity.
+
+For saved PrintProfile calculations:
+
+- use `printTimeMinutes / 60` for time-based costs;
+- do not multiply print time by quantity;
+- do not multiply material weights by quantity;
+- calculate material cost per material usage and sum the result;
+- compare each material usage against that material's remaining stock.
+
+```txt
+materialCost =
+  sum(materialTotalWeightGrams / 1000 * materialPricePerKg)
+```
+
+Standalone simulations may still use the legacy per-unit model where quantity multiplies time and weights.

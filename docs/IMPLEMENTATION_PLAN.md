@@ -125,12 +125,32 @@ Tasks:
 - Create print profile form.
 - Allow linking to product.
 - Allow standalone print profiles.
+- Support quantity-specific print runs.
+- Support one or more materials per print run.
+- Store print time in minutes and let the UI collect hours and minutes.
+- Show generated cost information inside the print profile list.
 - Add create/edit/duplicate/favorite/archive behavior.
 
 Suggested commit:
 
 ```txt
 feat: add print profile management
+```
+
+## Phase 7.1 - Print profile calculation refinement
+
+Tasks:
+
+- Treat CostCalculation as generated output instead of required primary workflow.
+- Keep standalone calculation as an optional simulation tool.
+- Calculate saved print runs from their stored slicer totals.
+- Warn when any material usage exceeds remaining stock.
+- Preserve historical CostCalculation snapshots.
+
+Suggested commit:
+
+```txt
+feat: support multi-material print runs
 ```
 
 ## Phase 8 - New calculation

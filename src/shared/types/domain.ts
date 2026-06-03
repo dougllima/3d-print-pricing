@@ -46,22 +46,39 @@ export type Product = {
   updatedAt: string
 }
 
+export type PrintProfileMaterialUsage = {
+  id: string
+  materialId: string
+  modelWeightGrams: number
+  supportWeightGrams: number
+  purgeWeightGrams: number
+  otherWasteGrams: number
+}
+
+export type PrintProfileRun = {
+  id: string
+  quantity: number
+  printTimeMinutes: number
+  materials: PrintProfileMaterialUsage[]
+}
+
 export type PrintProfile = {
   id: string
   productId?: string
   name: string
   printerId: string
-  materialId: string
+  printRuns: PrintProfileRun[]
+  materialId?: string
   slicerProfileName?: string
   layerHeightMm?: number
   nozzleDiameterMm?: number
   infillPercent?: number
   wallLoops?: number
-  printTimeHours: number
-  modelWeightGrams: number
-  supportWeightGrams: number
-  purgeWeightGrams: number
-  otherWasteGrams: number
+  printTimeHours?: number
+  modelWeightGrams?: number
+  supportWeightGrams?: number
+  purgeWeightGrams?: number
+  otherWasteGrams?: number
   notes?: string
   isFavorite?: boolean
   isActive: boolean

@@ -117,6 +117,47 @@ describe('calculateCost', () => {
     expect(result.realMarginPercent).toBeCloseTo(40)
   })
 
+  it('calculates total print runs with multiple materials and minutes', () => {
+    const result = calculateCost({
+      ...baseInput,
+      materialPricePerKg: undefined,
+      materialUsages: [
+        {
+          materialPricePerKg: 100,
+          modelWeightGrams: 40,
+          supportWeightGrams: 5,
+          purgeWeightGrams: 2,
+          otherWasteGrams: 3,
+        },
+        {
+          materialPricePerKg: 200,
+          modelWeightGrams: 20,
+          supportWeightGrams: 0,
+          purgeWeightGrams: 1,
+          otherWasteGrams: 0,
+        },
+      ],
+      printTimeHours: undefined,
+      printTimeMinutes: 90,
+      modelWeightGrams: 0,
+      supportWeightGrams: 0,
+      purgeWeightGrams: 0,
+      otherWasteGrams: 0,
+      quantity: 10,
+      finishingTasks: [],
+      failureRatePercent: 0,
+      profitMarginPercent: 0,
+    })
+
+    expect(result.totalWeightGrams).toBe(71)
+    expect(result.wasteWeightGrams).toBe(11)
+    expect(result.materialCost).toBeCloseTo(9.2)
+    expect(result.energyCost).toBeCloseTo(0.3)
+    expect(result.machineCost).toBeCloseTo(3)
+    expect(result.maintenanceCost).toBeCloseTo(0.75)
+    expect(result.totalCost).toBeCloseTo(13.25)
+  })
+
   it('rejects a profit margin that would make suggested price infinite', () => {
     expect(() => calculateCost({ ...baseInput, profitMarginPercent: 100 })).toThrow(
       CALCULATION_ERROR_MESSAGES.profitMarginMustBeLowerThan100,

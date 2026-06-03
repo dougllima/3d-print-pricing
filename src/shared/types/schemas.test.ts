@@ -64,7 +64,7 @@ describe('domain schemas', () => {
     expect(productSchema.safeParse({ ...product, materialId: 'material-1' }).success).toBe(false)
   })
 
-  it('defaults print profile waste weights to zero', () => {
+  it('normalizes legacy print profile data into one print run', () => {
     const profile = printProfileSchema.parse({
       id: 'profile-1',
       name: 'PLA Preto - 0.2mm',
@@ -77,9 +77,50 @@ describe('domain schemas', () => {
       updatedAt: now,
     })
 
-    expect(profile.supportWeightGrams).toBe(0)
-    expect(profile.purgeWeightGrams).toBe(0)
-    expect(profile.otherWasteGrams).toBe(0)
+    expect(profile.printRuns).toHaveLength(1)
+    expect(profile.printRuns[0]?.quantity).toBe(1)
+    expect(profile.printRuns[0]?.printTimeMinutes).toBe(150)
+    expect(profile.printRuns[0]?.materials[0]?.supportWeightGrams).toBe(0)
+    expect(profile.printRuns[0]?.materials[0]?.purgeWeightGrams).toBe(0)
+    expect(profile.printRuns[0]?.materials[0]?.otherWasteGrams).toBe(0)
+  })
+
+  it('accepts print profiles with multiple materials and quantities', () => {
+    const profile = printProfileSchema.parse({
+      id: 'profile-1',
+      name: 'Porta joias',
+      printerId: 'printer-1',
+      printRuns: [
+        {
+          id: 'run-1',
+          quantity: 1,
+          printTimeMinutes: 180,
+          materials: [
+            {
+              id: 'usage-1',
+              materialId: 'material-1',
+              modelWeightGrams: 40,
+              supportWeightGrams: 0,
+              purgeWeightGrams: 2,
+              otherWasteGrams: 0,
+            },
+            {
+              id: 'usage-2',
+              materialId: 'material-2',
+              modelWeightGrams: 20,
+              supportWeightGrams: 0,
+              purgeWeightGrams: 1,
+              otherWasteGrams: 0,
+            },
+          ],
+        },
+      ],
+      isActive: true,
+      createdAt: now,
+      updatedAt: now,
+    })
+
+    expect(profile.printRuns[0]?.materials).toHaveLength(2)
   })
 
   it('validates the default global settings', () => {

@@ -2,13 +2,21 @@ import { CALCULATION_ERROR_MESSAGES } from '@/shared/constants'
 import type { CostCalculation, FinishingTask } from '@/shared/types'
 
 export type CalculateCostInput = {
-  materialPricePerKg: number
+  materialPricePerKg?: number
+  materialUsages?: Array<{
+    materialPricePerKg: number
+    modelWeightGrams: number
+    supportWeightGrams?: number
+    purgeWeightGrams?: number
+    otherWasteGrams?: number
+  }>
   printerPowerWatts?: number
   electricityCostPerKwh?: number
   printerPurchasePrice?: number
   printerEstimatedLifetimeHours?: number
   printerMaintenanceCostPerHour?: number
-  printTimeHours: number
+  printTimeHours?: number
+  printTimeMinutes?: number
   modelWeightGrams: number
   supportWeightGrams?: number
   purgeWeightGrams?: number
@@ -30,21 +38,57 @@ export function calculateCost(input: CalculateCostInput): CostCalculationResult 
   const purgeWeightGrams = input.purgeWeightGrams ?? 0
   const otherWasteGrams = input.otherWasteGrams ?? 0
   const finishingTasks = input.finishingTasks ?? []
+  const usesTotalRunInput = input.materialUsages !== undefined || input.printTimeMinutes !== undefined
+  const printTimeHours = input.printTimeMinutes === undefined
+    ? input.printTimeHours ?? 0
+    : input.printTimeMinutes / 60
+
+  const materialTotals = input.materialUsages?.reduce(
+    (totals, materialUsage) => {
+      const materialSupportWeightGrams = materialUsage.supportWeightGrams ?? 0
+      const materialPurgeWeightGrams = materialUsage.purgeWeightGrams ?? 0
+      const materialOtherWasteGrams = materialUsage.otherWasteGrams ?? 0
+      const materialTotalWeightGrams =
+        materialUsage.modelWeightGrams +
+        materialSupportWeightGrams +
+        materialPurgeWeightGrams +
+        materialOtherWasteGrams
+
+      return {
+        materialCost:
+          totals.materialCost +
+          (materialTotalWeightGrams / 1000) * materialUsage.materialPricePerKg,
+        totalWeightGrams: totals.totalWeightGrams + materialTotalWeightGrams,
+        wasteWeightGrams:
+          totals.wasteWeightGrams +
+          materialSupportWeightGrams +
+          materialPurgeWeightGrams +
+          materialOtherWasteGrams,
+      }
+    },
+    { materialCost: 0, totalWeightGrams: 0, wasteWeightGrams: 0 },
+  )
 
   const totalWeightPerUnitGrams =
     input.modelWeightGrams + supportWeightGrams + purgeWeightGrams + otherWasteGrams
   const wasteWeightPerUnitGrams = supportWeightGrams + purgeWeightGrams + otherWasteGrams
-  const totalWeightGrams = totalWeightPerUnitGrams * input.quantity
-  const wasteWeightGrams = wasteWeightPerUnitGrams * input.quantity
-  const wastePercent =
-    totalWeightPerUnitGrams === 0 ? 0 : (wasteWeightPerUnitGrams / totalWeightPerUnitGrams) * 100
+  const totalWeightGrams =
+    materialTotals?.totalWeightGrams ??
+    totalWeightPerUnitGrams * input.quantity
+  const wasteWeightGrams =
+    materialTotals?.wasteWeightGrams ??
+    wasteWeightPerUnitGrams * input.quantity
+  const wastePercent = totalWeightGrams === 0 ? 0 : (wasteWeightGrams / totalWeightGrams) * 100
 
-  const materialCost = (totalWeightGrams / 1000) * input.materialPricePerKg
+  const materialCost =
+    materialTotals?.materialCost ??
+    (totalWeightGrams / 1000) * (input.materialPricePerKg ?? 0)
+  const timeMultiplier = usesTotalRunInput ? 1 : input.quantity
   const energyCost =
     input.printerPowerWatts === undefined || input.electricityCostPerKwh === undefined
       ? 0
-      : input.printTimeHours *
-        input.quantity *
+      : printTimeHours *
+        timeMultiplier *
         (input.printerPowerWatts / 1000) *
         input.electricityCostPerKwh
 
@@ -53,14 +97,14 @@ export function calculateCost(input: CalculateCostInput): CostCalculationResult 
     input.printerEstimatedLifetimeHours === undefined ||
     input.printerEstimatedLifetimeHours === 0
       ? 0
-      : input.printTimeHours *
-        input.quantity *
+      : printTimeHours *
+        timeMultiplier *
         (input.printerPurchasePrice / input.printerEstimatedLifetimeHours)
 
   const maintenanceCost =
     input.printerMaintenanceCostPerHour === undefined
       ? 0
-      : input.printTimeHours * input.quantity * input.printerMaintenanceCostPerHour
+      : printTimeHours * timeMultiplier * input.printerMaintenanceCostPerHour
 
   const printingCost = materialCost + energyCost + machineCost + maintenanceCost
   const finishingCost = finishingTasks.reduce(

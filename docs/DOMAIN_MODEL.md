@@ -264,3 +264,40 @@ Rules:
 - Must store snapshots.
 - Historical calculations must not be recomputed automatically when materials, printers or settings change.
 - Recalculation should create a new CostCalculation.
+
+---
+
+## PrintProfile v1.1 refinement
+
+PrintProfile now represents a production configuration instead of a single-material linear profile.
+
+Additional domain types:
+
+```ts
+export type PrintProfileMaterialUsage = {
+  id: string;
+  materialId: string;
+  modelWeightGrams: number;
+  supportWeightGrams: number;
+  purgeWeightGrams: number;
+  otherWasteGrams: number;
+};
+
+export type PrintProfileRun = {
+  id: string;
+  quantity: number;
+  printTimeMinutes: number;
+  materials: PrintProfileMaterialUsage[];
+};
+```
+
+Updated rules:
+
+- Product remains independent from materials, printer, weights and slicer settings.
+- PrintProfile belongs to one printer and may optionally belong to one product.
+- PrintProfile may use one or more materials.
+- PrintProfile may have one or more quantity-specific print runs.
+- Each print run stores total slicer output for that quantity.
+- Saved print run weights and time must not be multiplied by quantity again.
+- Time is stored as `printTimeMinutes`; UI should collect hours and minutes.
+- Cost can be shown as generated output inside the Impressões UI.

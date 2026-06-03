@@ -52,7 +52,9 @@ Use:
 - Product and PrintProfile are separate concepts.
 - UI should call PrintProfile "Impressões".
 - A Product is a catalog item.
-- A PrintProfile is a specific way to manufacture a product.
+- A PrintProfile is a specific way to manufacture a product and may contain multiple quantity-specific print runs.
+- A PrintProfile may use one or more materials.
+- Saved print run weights and time come from slicer totals and must not be multiplied by quantity again.
 - A CostCalculation is a snapshot and must not change when material or printer data changes later.
 - Material color HEX/RGB is optional.
 - Material stock tracking is optional and measured in grams.

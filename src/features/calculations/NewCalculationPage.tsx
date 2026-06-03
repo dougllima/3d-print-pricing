@@ -61,6 +61,10 @@ function findById<TEntity extends { id: string }>(items: TEntity[], id: string) 
   return items.find((item) => item.id === id)
 }
 
+function getPrimaryPrintRun(printProfile: PrintProfile) {
+  return printProfile.printRuns[0]
+}
+
 export function NewCalculationPage() {
   const repositories = useRepositories()
   const [finishingTasks, setFinishingTasks] = useState<FinishingTask[]>([])
@@ -158,12 +162,20 @@ export function NewCalculationPage() {
     setValue('name', printProfile.name)
     setValue('productId', printProfile.productId)
     setValue('printerId', printProfile.printerId)
-    setValue('materialId', printProfile.materialId)
-    setValue('printTimeHours', printProfile.printTimeHours)
-    setValue('modelWeightGrams', printProfile.modelWeightGrams)
-    setValue('supportWeightGrams', printProfile.supportWeightGrams)
-    setValue('purgeWeightGrams', printProfile.purgeWeightGrams)
-    setValue('otherWasteGrams', printProfile.otherWasteGrams)
+    const printRun = getPrimaryPrintRun(printProfile)
+    const materialUsage = printRun?.materials[0]
+
+    if (printRun === undefined || materialUsage === undefined) {
+      return
+    }
+
+    setValue('materialId', materialUsage.materialId)
+    setValue('quantity', printRun.quantity)
+    setValue('printTimeHours', printRun.printTimeMinutes / 60)
+    setValue('modelWeightGrams', materialUsage.modelWeightGrams)
+    setValue('supportWeightGrams', materialUsage.supportWeightGrams)
+    setValue('purgeWeightGrams', materialUsage.purgeWeightGrams)
+    setValue('otherWasteGrams', materialUsage.otherWasteGrams)
   }, [printProfiles, selectedPrintProfileId, setValue])
 
   useEffect(() => {

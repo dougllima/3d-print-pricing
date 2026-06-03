@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { useRepositories } from '@/app/useRepositories'
-import type { Material, Printer, PrintProfile, Product } from '@/shared/types'
+import { defaultSettings, type GlobalSettings, type Material, type Printer, type PrintProfile, type Product } from '@/shared/types'
 
 import { PrintProfileForm } from './PrintProfileForm'
 import { PrintProfileList } from './PrintProfileList'
@@ -22,6 +22,7 @@ export function PrintProfilesPage() {
   const [printers, setPrinters] = useState<Printer[]>([])
   const [printProfiles, setPrintProfiles] = useState<PrintProfile[]>([])
   const [products, setProducts] = useState<Product[]>([])
+  const [settings, setSettings] = useState<GlobalSettings>(defaultSettings)
 
   const loadPrintProfiles = useCallback(async () => {
     const savedPrintProfiles = await repositories.printProfiles.list()
@@ -39,12 +40,14 @@ export function PrintProfilesPage() {
       repositories.printers.list(),
       repositories.products.list(),
       repositories.printProfiles.list(),
+      repositories.settings.get(),
     ])
-      .then(([savedMaterials, savedPrinters, savedProducts, savedPrintProfiles]) => {
+      .then(([savedMaterials, savedPrinters, savedProducts, savedPrintProfiles, savedSettings]) => {
         if (shouldUpdate) {
           setMaterials(savedMaterials.filter((material) => material.isActive))
           setPrinters(savedPrinters.filter((printer) => printer.isActive))
           setProducts(savedProducts.filter((product) => product.isActive))
+          setSettings(savedSettings)
           setPrintProfiles(
             savedPrintProfiles.toSorted((first, second) => first.name.localeCompare(second.name)),
           )
@@ -62,7 +65,13 @@ export function PrintProfilesPage() {
     return () => {
       shouldUpdate = false
     }
-  }, [repositories.materials, repositories.printers, repositories.printProfiles, repositories.products])
+  }, [
+    repositories.materials,
+    repositories.printers,
+    repositories.printProfiles,
+    repositories.products,
+    repositories.settings,
+  ])
 
   const activePrintProfilesCount = useMemo(
     () => printProfiles.filter((printProfile) => printProfile.isActive).length,
@@ -76,17 +85,17 @@ export function PrintProfilesPage() {
       productId: values.productId,
       name: values.name,
       printerId: values.printerId,
-      materialId: values.materialId,
+      printRuns: values.printRuns.map((printRun) => ({
+        id: printRun.id,
+        quantity: printRun.quantity,
+        printTimeMinutes: printRun.printTimeHours * 60 + printRun.printTimeMinutesPart,
+        materials: printRun.materials,
+      })),
       slicerProfileName: values.slicerProfileName,
       layerHeightMm: values.layerHeightMm,
       nozzleDiameterMm: values.nozzleDiameterMm,
       infillPercent: values.infillPercent,
       wallLoops: values.wallLoops,
-      printTimeHours: values.printTimeHours,
-      modelWeightGrams: values.modelWeightGrams,
-      supportWeightGrams: values.supportWeightGrams,
-      purgeWeightGrams: values.purgeWeightGrams,
-      otherWasteGrams: values.otherWasteGrams,
       notes: values.notes,
       isFavorite: editingPrintProfile?.isFavorite ?? false,
       isActive: editingPrintProfile?.isActive ?? true,
@@ -160,6 +169,7 @@ export function PrintProfilesPage() {
           printers={printers}
           printProfiles={printProfiles}
           products={products}
+          settings={settings}
         />
       </div>
     </div>
