@@ -12,16 +12,18 @@ import {
 import { useState } from 'react'
 
 import { MaterialsPage } from '@/features/materials'
+import { PrintProfilesPage } from '@/features/print-profiles'
 import { PrintersPage } from '@/features/printers'
+import { ProductsPage } from '@/features/products'
 import { cn } from '@/shared/utils'
 
-type AppSection = 'materials' | 'printers'
+type AppSection = 'materials' | 'printProfiles' | 'printers' | 'products'
 
 const navigationItems = [
   { label: 'Dashboard', icon: BarChart3 },
   { label: 'Novo cálculo', icon: Calculator },
-  { label: 'Produtos', icon: Package },
-  { label: 'Impressões', icon: Layers3 },
+  { label: 'Produtos', icon: Package, section: 'products' },
+  { label: 'Impressões', icon: Layers3, section: 'printProfiles' },
   { label: 'Materiais', icon: Cuboid, section: 'materials' },
   { label: 'Impressoras', icon: Printer, section: 'printers' },
   { label: 'Histórico', icon: History },
@@ -30,6 +32,12 @@ const navigationItems = [
 
 function App() {
   const [activeSection, setActiveSection] = useState<AppSection>('materials')
+  const ActivePage = {
+    materials: MaterialsPage,
+    printProfiles: PrintProfilesPage,
+    printers: PrintersPage,
+    products: ProductsPage,
+  }[activeSection]
 
   return (
     <div className="min-h-screen bg-[#f5f7f8] text-[#17202a]">
@@ -72,7 +80,7 @@ function App() {
         </aside>
 
         <main className="flex-1">
-          {activeSection === 'materials' ? <MaterialsPage /> : <PrintersPage />}
+          <ActivePage />
         </main>
       </div>
     </div>
