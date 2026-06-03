@@ -40,6 +40,7 @@ Use:
 - Treat cost calculations as business logic and cover them with unit tests.
 - Prefer explicit domain types over loose objects.
 - Prefer small components and small functions.
+- Keep shared constants in `src/shared/constants` when values are reused or represent project rules.
 - Keep UI labels in Portuguese.
 - Keep code, types, functions, and file names in English.
 
