@@ -1,3 +1,4 @@
+import { CALCULATION_ERROR_MESSAGES } from '@/shared/constants'
 import type { CostCalculation, FinishingTask } from '@/shared/types'
 
 export type CalculateCostInput = {
@@ -22,7 +23,7 @@ export type CostCalculationResult = CostCalculation['result']
 
 export function calculateCost(input: CalculateCostInput): CostCalculationResult {
   if (input.profitMarginPercent >= 100) {
-    throw new RangeError('profitMarginPercent must be lower than 100')
+    throw new RangeError(CALCULATION_ERROR_MESSAGES.profitMarginMustBeLowerThan100)
   }
 
   const supportWeightGrams = input.supportWeightGrams ?? 0

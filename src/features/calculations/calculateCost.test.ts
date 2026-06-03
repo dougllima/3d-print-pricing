@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
+import { CALCULATION_ERROR_MESSAGES } from '@/shared/constants'
+
 import { calculateCost, type CalculateCostInput } from './calculateCost'
 
 const baseInput: CalculateCostInput = {
@@ -116,6 +118,8 @@ describe('calculateCost', () => {
   })
 
   it('rejects a profit margin that would make suggested price infinite', () => {
-    expect(() => calculateCost({ ...baseInput, profitMarginPercent: 100 })).toThrow(RangeError)
+    expect(() => calculateCost({ ...baseInput, profitMarginPercent: 100 })).toThrow(
+      CALCULATION_ERROR_MESSAGES.profitMarginMustBeLowerThan100,
+    )
   })
 })
