@@ -1,9 +1,6 @@
 import { z } from 'zod'
 
-const optionalTextField = z.preprocess(
-  (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
-  z.string().trim().min(1).optional(),
-)
+import { optionalTextField } from '@/shared/validation'
 
 export const productFormSchema = z.object({
   name: z.string().trim().min(1, 'Informe o nome do produto'),

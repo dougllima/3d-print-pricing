@@ -1,8 +1,9 @@
 import { Archive, Copy, Pencil, RotateCcw, Star } from 'lucide-react'
 
-import { calculateCost } from '@/features/calculations'
 import type { GlobalSettings, Material, Printer, PrintProfile, Product } from '@/shared/types'
-import { cn, hasEnoughMaterialStock } from '@/shared/utils'
+import { cn, formatCurrency, formatMinutes, formatWeightGrams } from '@/shared/utils'
+
+import { createPrintRunSummary, findEntityName } from './printRunSummary'
 
 type PrintProfileListProps = {
   materials: Material[]
@@ -17,44 +18,12 @@ type PrintProfileListProps = {
   settings: GlobalSettings
 }
 
-const currencyFormatter = new Intl.NumberFormat('pt-BR', {
-  currency: 'BRL',
-  style: 'currency',
-})
-
 function findById<TItem extends { id: string }>(items: TItem[], id?: string) {
   if (id === undefined) {
     return undefined
   }
 
   return items.find((item) => item.id === id)
-}
-
-function findName<TItem extends { id: string; name: string }>(items: TItem[], id?: string) {
-  if (id === undefined) {
-    return 'Avulsa'
-  }
-
-  return items.find((item) => item.id === id)?.name ?? 'Não encontrado'
-}
-
-function formatMinutes(totalMinutes: number) {
-  const hours = Math.floor(totalMinutes / 60)
-  const minutes = totalMinutes % 60
-
-  return `${hours}h ${minutes.toString().padStart(2, '0')}min`
-}
-
-function getRunTotalWeight(printRun: PrintProfile['printRuns'][number]) {
-  return printRun.materials.reduce(
-    (totalWeight, materialUsage) =>
-      totalWeight +
-      materialUsage.modelWeightGrams +
-      materialUsage.supportWeightGrams +
-      materialUsage.purgeWeightGrams +
-      materialUsage.otherWasteGrams,
-    0,
-  )
 }
 
 export function PrintProfileList({
@@ -95,7 +64,7 @@ export function PrintProfileList({
                 <div className="flex flex-wrap items-center gap-2">
                   <h3 className="font-semibold text-[#17202a]">{printProfile.name}</h3>
                   <span className="rounded-md bg-[#e8eef0] px-2 py-1 text-xs font-medium text-[#52616b]">
-                    {findName(products, printProfile.productId)}
+                    {findEntityName(products, printProfile.productId)}
                   </span>
                   <span className="rounded-md bg-[#f3e7d7] px-2 py-1 text-xs font-medium text-[#9a5b25]">
                     {printProfile.isActive ? 'Ativa' : 'Arquivada'}
@@ -110,7 +79,7 @@ export function PrintProfileList({
                 <dl className="mt-3 grid gap-2 text-sm text-[#52616b] sm:grid-cols-2">
                   <div>
                     <dt className="text-xs uppercase text-[#697782]">Impressora</dt>
-                    <dd>{findName(printers, printProfile.printerId)}</dd>
+                    <dd>{findEntityName(printers, printProfile.printerId, 'Não encontrada')}</dd>
                   </div>
                   <div>
                     <dt className="text-xs uppercase text-[#697782]">Variações</dt>
@@ -120,53 +89,12 @@ export function PrintProfileList({
 
                 <div className="mt-4 space-y-3">
                   {printProfile.printRuns.map((printRun) => {
-                    const materialUsages = printRun.materials.map((materialUsage) => {
-                      const material = findById(materials, materialUsage.materialId)
-
-                      return {
-                        ...materialUsage,
-                        material,
-                      }
+                    const summary = createPrintRunSummary({
+                      materials,
+                      printRun,
+                      printer,
+                      settings,
                     })
-                    const missingMaterial = materialUsages.some(
-                      (materialUsage) => materialUsage.material === undefined,
-                    )
-                    const result =
-                      printer === undefined || missingMaterial
-                        ? undefined
-                        : calculateCost({
-                            materialUsages: materialUsages.map((materialUsage) => ({
-                              materialPricePerKg: materialUsage.material?.pricePerKg ?? 0,
-                              modelWeightGrams: materialUsage.modelWeightGrams,
-                              supportWeightGrams: materialUsage.supportWeightGrams,
-                              purgeWeightGrams: materialUsage.purgeWeightGrams,
-                              otherWasteGrams: materialUsage.otherWasteGrams,
-                            })),
-                            printerPowerWatts: printer.powerWatts,
-                            electricityCostPerKwh: settings.electricityCostPerKwh,
-                            printerPurchasePrice: printer.purchasePrice,
-                            printerEstimatedLifetimeHours: printer.estimatedLifetimeHours,
-                            printerMaintenanceCostPerHour: printer.maintenanceCostPerHour,
-                            printTimeMinutes: printRun.printTimeMinutes,
-                            modelWeightGrams: 0,
-                            quantity: printRun.quantity,
-                            finishingTasks: [],
-                            failureRatePercent:
-                              printer.defaultFailureRatePercent ??
-                              settings.defaultFailureRatePercent,
-                            profitMarginPercent: settings.defaultProfitMarginPercent,
-                          })
-                    const stockWarnings = materialUsages.filter(
-                      (materialUsage) =>
-                        materialUsage.material !== undefined &&
-                        !hasEnoughMaterialStock(
-                          materialUsage.material,
-                          materialUsage.modelWeightGrams +
-                            materialUsage.supportWeightGrams +
-                            materialUsage.purgeWeightGrams +
-                            materialUsage.otherWasteGrams,
-                        ),
-                    )
 
                     return (
                       <div
@@ -178,32 +106,25 @@ export function PrintProfileList({
                             {printRun.quantity} unidade(s)
                           </span>
                           <span>Tempo: {formatMinutes(printRun.printTimeMinutes)}</span>
-                          <span>Peso: {getRunTotalWeight(printRun).toFixed(1)} g</span>
+                          <span>Peso: {formatWeightGrams(summary.totalWeightGrams)}</span>
                         </div>
-                        {result !== undefined && (
+                        {summary.result !== undefined && (
                           <div className="mt-2 grid gap-2 text-sm text-[#52616b] sm:grid-cols-2">
-                            <span>Custo: {currencyFormatter.format(result.totalCost)}</span>
+                            <span>Custo: {formatCurrency(summary.result.totalCost)}</span>
                             <span>
-                              Preço sugerido:{' '}
-                              {currencyFormatter.format(result.suggestedPrice)}
+                              Preço sugerido: {formatCurrency(summary.result.suggestedPrice)}
                             </span>
                           </div>
                         )}
                         <ul className="mt-2 space-y-1 text-xs text-[#697782]">
-                          {materialUsages.map((materialUsage) => (
+                          {summary.materialUsages.map((materialUsage) => (
                             <li key={materialUsage.id}>
                               {materialUsage.material?.name ?? 'Material não encontrado'}:{' '}
-                              {(
-                                materialUsage.modelWeightGrams +
-                                materialUsage.supportWeightGrams +
-                                materialUsage.purgeWeightGrams +
-                                materialUsage.otherWasteGrams
-                              ).toFixed(1)}{' '}
-                              g
+                              {formatWeightGrams(materialUsage.totalWeightGrams)}
                             </li>
                           ))}
                         </ul>
-                        {stockWarnings.length > 0 && (
+                        {summary.stockWarnings.length > 0 && (
                           <p className="mt-2 rounded-md border border-[#e5c76b] bg-[#fff8db] px-3 py-2 text-xs text-[#8a6100]">
                             Uma ou mais cores passam do estoque restante.
                           </p>

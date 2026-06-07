@@ -1,11 +1,11 @@
 import { z } from 'zod'
 
 import { materialTypeSchema } from '@/shared/types'
-
-const optionalTextField = z.preprocess(
-  (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
-  z.string().trim().min(1).optional(),
-)
+import {
+  optionalNonNegativeNumberField,
+  optionalPositiveNumberField,
+  optionalTextField,
+} from '@/shared/validation'
 
 const optionalHexColorField = z.preprocess(
   (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
@@ -14,16 +14,6 @@ const optionalHexColorField = z.preprocess(
     .trim()
     .regex(/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/, 'Informe uma cor HEX válida')
     .optional(),
-)
-
-const optionalNonNegativeNumberField = z.preprocess(
-  (value) => (typeof value === 'number' && Number.isNaN(value) ? undefined : value),
-  z.number().nonnegative('Informe um valor maior ou igual a zero').optional(),
-)
-
-const optionalPositiveNumberField = z.preprocess(
-  (value) => (typeof value === 'number' && Number.isNaN(value) ? undefined : value),
-  z.number().positive('Informe um valor maior que zero').optional(),
 )
 
 export const materialFormSchema = z.object({

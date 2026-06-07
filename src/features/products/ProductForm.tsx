@@ -3,6 +3,7 @@ import { Save, X } from 'lucide-react'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 
+import { inputClassName } from '@/shared/styles'
 import type { Product } from '@/shared/types'
 
 import {
@@ -16,9 +17,6 @@ type ProductFormProps = {
   onSubmit: (values: ProductFormValues) => Promise<void>
   product?: Product
 }
-
-const inputClassName =
-  'mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]'
 
 const emptyFormValues: ProductFormInputValues = {
   name: '',

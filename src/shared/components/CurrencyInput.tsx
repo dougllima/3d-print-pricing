@@ -1,5 +1,7 @@
 import { useState } from 'react'
 
+import { formatOptionalCurrency } from '@/shared/utils'
+
 type CurrencyInputProps = {
   className?: string
   disabled?: boolean
@@ -9,16 +11,9 @@ type CurrencyInputProps = {
   value: number | undefined
 }
 
-const currencyFormatter = new Intl.NumberFormat('pt-BR', {
-  currency: 'BRL',
-  style: 'currency',
-})
-
-function formatCurrency(value: number | undefined) {
-  return value === undefined || Number.isNaN(value) ? '' : currencyFormatter.format(value)
-}
-
 function parseCurrency(value: string) {
+  // Keep the form state numeric while allowing users to type the familiar BRL shape:
+  // "R$ 1.234,56" becomes 1234.56.
   const normalizedValue = value
     .replace(/[^\d,.-]/g, '')
     .replace(/\./g, '')
@@ -43,7 +38,9 @@ export function CurrencyInput({
 }: CurrencyInputProps) {
   const [draftValue, setDraftValue] = useState('')
   const [isEditing, setIsEditing] = useState(false)
-  const displayValue = isEditing ? draftValue : formatCurrency(value)
+  // While the user is editing, preserve exactly what they typed. Outside editing,
+  // always display the canonical formatted currency value from form state.
+  const displayValue = isEditing ? draftValue : formatOptionalCurrency(value)
 
   return (
     <input
@@ -57,7 +54,7 @@ export function CurrencyInput({
         onChange(parseCurrency(event.target.value))
       }}
       onFocus={() => {
-        setDraftValue(formatCurrency(value))
+        setDraftValue(formatOptionalCurrency(value))
         setIsEditing(true)
       }}
       placeholder={placeholder}

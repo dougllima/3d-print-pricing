@@ -1,19 +1,23 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { useRepositories } from '@/app/useRepositories'
-import { defaultSettings, type GlobalSettings, type Material, type Printer, type PrintProfile, type Product } from '@/shared/types'
+import {
+  defaultSettings,
+  type GlobalSettings,
+  type Material,
+  type Printer,
+  type PrintProfile,
+  type Product,
+} from '@/shared/types'
 
 import { PrintProfileForm } from './PrintProfileForm'
 import { PrintProfileList } from './PrintProfileList'
+import {
+  applyPrintProfileChanges,
+  createDuplicatedPrintProfile,
+  createPrintProfileFromFormValues,
+} from './printProfileService'
 import type { PrintProfileFormValues } from './printProfileFormSchema'
-
-function createPrintProfileId() {
-  return crypto.randomUUID()
-}
-
-function createTimestamp() {
-  return new Date().toISOString()
-}
 
 export function PrintProfilesPage() {
   const repositories = useRepositories()
@@ -79,56 +83,23 @@ export function PrintProfilesPage() {
   )
 
   async function savePrintProfile(values: PrintProfileFormValues) {
-    const now = createTimestamp()
-    const printProfile: PrintProfile = {
-      id: editingPrintProfile?.id ?? createPrintProfileId(),
-      productId: values.productId,
-      name: values.name,
-      printerId: values.printerId,
-      printRuns: values.printRuns.map((printRun) => ({
-        id: printRun.id,
-        quantity: printRun.quantity,
-        printTimeMinutes: printRun.printTimeHours * 60 + printRun.printTimeMinutesPart,
-        materials: printRun.materials,
-      })),
-      slicerProfileName: values.slicerProfileName,
-      layerHeightMm: values.layerHeightMm,
-      nozzleDiameterMm: values.nozzleDiameterMm,
-      infillPercent: values.infillPercent,
-      wallLoops: values.wallLoops,
-      notes: values.notes,
-      isFavorite: editingPrintProfile?.isFavorite ?? false,
-      isActive: editingPrintProfile?.isActive ?? true,
-      createdAt: editingPrintProfile?.createdAt ?? now,
-      updatedAt: now,
-    }
-
-    await repositories.printProfiles.save(printProfile)
+    await repositories.printProfiles.save(
+      createPrintProfileFromFormValues({
+        editingPrintProfile,
+        values,
+      }),
+    )
     setEditingPrintProfile(undefined)
     await loadPrintProfiles()
   }
 
   async function updatePrintProfile(printProfile: PrintProfile, changes: Partial<PrintProfile>) {
-    await repositories.printProfiles.save({
-      ...printProfile,
-      ...changes,
-      updatedAt: createTimestamp(),
-    })
+    await repositories.printProfiles.save(applyPrintProfileChanges(printProfile, changes))
     await loadPrintProfiles()
   }
 
   async function duplicatePrintProfile(printProfile: PrintProfile) {
-    const now = createTimestamp()
-
-    await repositories.printProfiles.save({
-      ...printProfile,
-      id: createPrintProfileId(),
-      name: `${printProfile.name} cópia`,
-      isFavorite: false,
-      isActive: true,
-      createdAt: now,
-      updatedAt: now,
-    })
+    await repositories.printProfiles.save(createDuplicatedPrintProfile(printProfile))
     await loadPrintProfiles()
   }
 

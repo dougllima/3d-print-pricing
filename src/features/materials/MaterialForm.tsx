@@ -4,6 +4,7 @@ import { useEffect, useMemo } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 
 import { CurrencyInput } from '@/shared/components'
+import { inputClassName } from '@/shared/styles'
 import { materialTypes, type Material } from '@/shared/types'
 
 import {
@@ -17,9 +18,6 @@ type MaterialFormProps = {
   onCancelEdit: () => void
   onSubmit: (values: MaterialFormValues) => Promise<void>
 }
-
-const inputClassName =
-  'mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]'
 
 const emptyFormValues: MaterialFormInputValues = {
   name: '',

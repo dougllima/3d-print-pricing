@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 
 import { CurrencyInput } from '@/shared/components'
+import { inputClassName } from '@/shared/styles'
 import type { Printer } from '@/shared/types'
 
 import {
@@ -17,9 +18,6 @@ type PrinterFormProps = {
   onSubmit: (values: PrinterFormValues) => Promise<void>
   printer?: Printer
 }
-
-const inputClassName =
-  'mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]'
 
 const emptyFormValues: PrinterFormInputValues = {
   name: '',
