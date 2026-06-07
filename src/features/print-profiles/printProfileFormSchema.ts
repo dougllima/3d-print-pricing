@@ -1,12 +1,6 @@
 import { z } from 'zod'
 
-import {
-  optionalNonNegativeIntegerField,
-  optionalPercentField,
-  optionalPositiveNumberField,
-  optionalTextField,
-  requiredTextField,
-} from '@/shared/validation'
+import { optionalTextField, requiredTextField } from '@/shared/validation'
 
 export const printProfileMaterialUsageFormSchema = z.object({
   id: z.string().trim().min(1),
@@ -34,10 +28,6 @@ export const printProfileFormSchema = z.object({
   name: z.string().trim().min(1, 'Informe o nome da impressão'),
   printerId: requiredTextField,
   slicerProfileName: optionalTextField,
-  layerHeightMm: optionalPositiveNumberField,
-  nozzleDiameterMm: optionalPositiveNumberField,
-  infillPercent: optionalPercentField,
-  wallLoops: optionalNonNegativeIntegerField,
   printRuns: z.array(printProfileRunFormSchema).min(1, 'Adicione ao menos uma quantidade'),
   notes: optionalTextField,
 })

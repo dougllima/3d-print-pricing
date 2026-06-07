@@ -5,7 +5,7 @@ import { optionalTextField } from '@/shared/validation'
 export const productFormSchema = z.object({
   name: z.string().trim().min(1, 'Informe o nome do produto'),
   description: optionalTextField,
-  category: optionalTextField,
+  categories: z.array(z.string().trim().min(1)),
   notes: optionalTextField,
 })
 

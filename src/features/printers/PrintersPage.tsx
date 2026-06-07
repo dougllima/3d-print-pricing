@@ -2,17 +2,14 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { useRepositories } from '@/app/useRepositories'
 import type { Printer } from '@/shared/types'
+import { createEntityId, createTimestamp } from '@/shared/utils'
 
 import { PrinterForm } from './PrinterForm'
 import { PrinterList } from './PrinterList'
 import type { PrinterFormValues } from './printerFormSchema'
 
-function createPrinterId() {
-  return crypto.randomUUID()
-}
-
-function createTimestamp() {
-  return new Date().toISOString()
+function sortPrintersByName(printers: Printer[]) {
+  return printers.toSorted((first, second) => first.name.localeCompare(second.name))
 }
 
 export function PrintersPage() {
@@ -23,7 +20,7 @@ export function PrintersPage() {
   const loadPrinters = useCallback(async () => {
     const savedPrinters = await repositories.printers.list()
 
-    setPrinters(savedPrinters.toSorted((first, second) => first.name.localeCompare(second.name)))
+    setPrinters(sortPrintersByName(savedPrinters))
   }, [repositories.printers])
 
   useEffect(() => {
@@ -33,7 +30,7 @@ export function PrintersPage() {
       .list()
       .then((savedPrinters) => {
         if (shouldUpdate) {
-          setPrinters(savedPrinters.toSorted((first, second) => first.name.localeCompare(second.name)))
+          setPrinters(sortPrintersByName(savedPrinters))
         }
       })
       .catch(() => {
@@ -47,15 +44,15 @@ export function PrintersPage() {
     }
   }, [repositories.printers])
 
-  const activePrintersCount = useMemo(
-    () => printers.filter((printer) => printer.isActive).length,
+  const activePrinters = useMemo(
+    () => printers.filter((printer) => printer.isActive),
     [printers],
   )
 
   async function savePrinter(values: PrinterFormValues) {
     const now = createTimestamp()
     const printer: Printer = {
-      id: editingPrinter?.id ?? createPrinterId(),
+      id: editingPrinter?.id ?? createEntityId(),
       name: values.name,
       model: values.model,
       powerWatts: values.powerWatts,
@@ -74,10 +71,10 @@ export function PrintersPage() {
     await loadPrinters()
   }
 
-  async function updatePrinterStatus(printer: Printer, isActive: boolean) {
+  async function archivePrinter(printer: Printer) {
     await repositories.printers.save({
       ...printer,
-      isActive,
+      isActive: false,
       updatedAt: createTimestamp(),
     })
     await loadPrinters()
@@ -94,7 +91,7 @@ export function PrintersPage() {
             </h1>
           </div>
           <div className="rounded-md border border-[#d8dee2] bg-[#fbfcfd] px-3 py-2 text-sm text-[#52616b]">
-            {activePrintersCount} ativas de {printers.length} cadastradas
+            {activePrinters.length} impressora(s) ativa(s)
           </div>
         </div>
       </header>
@@ -105,12 +102,7 @@ export function PrintersPage() {
           onSubmit={savePrinter}
           printer={editingPrinter}
         />
-        <PrinterList
-          onArchive={(printer) => updatePrinterStatus(printer, false)}
-          onEdit={setEditingPrinter}
-          onRestore={(printer) => updatePrinterStatus(printer, true)}
-          printers={printers}
-        />
+        <PrinterList onArchive={archivePrinter} onEdit={setEditingPrinter} printers={activePrinters} />
       </div>
     </div>
   )

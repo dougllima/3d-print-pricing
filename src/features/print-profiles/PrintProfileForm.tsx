@@ -1,9 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Plus, Save, Trash2, X } from 'lucide-react'
-import { useEffect } from 'react'
+import { useEffect, useId } from 'react'
 import { useFieldArray, useForm, type Control, type UseFormRegister } from 'react-hook-form'
 
+import { inputClassName, primaryButtonClassName, secondaryButtonClassName, textareaClassName } from '@/shared/styles'
 import type { Material, Printer, PrintProfile, Product } from '@/shared/types'
+import { createEntityId } from '@/shared/utils'
 
 import {
   printProfileFormSchema,
@@ -18,6 +20,7 @@ type PrintProfileFormProps = {
   printers: Printer[]
   printProfile?: PrintProfile
   products: Product[]
+  slicerProfileOptions: string[]
 }
 
 type RunMaterialsFieldsProps = {
@@ -36,20 +39,17 @@ type MaterialWeightFieldName =
 const materialWeightFields: Array<{
   fieldName: MaterialWeightFieldName
   label: string
+  placeholder: string
 }> = [
-  { fieldName: 'modelWeightGrams', label: 'Peso do modelo (g)' },
-  { fieldName: 'supportWeightGrams', label: 'Suportes (g)' },
-  { fieldName: 'purgeWeightGrams', label: 'Purga (g)' },
-  { fieldName: 'otherWasteGrams', label: 'Outros desperdícios (g)' },
+  { fieldName: 'modelWeightGrams', label: 'Peso do modelo (g)', placeholder: '42 g' },
+  { fieldName: 'supportWeightGrams', label: 'Suportes (g)', placeholder: '5 g' },
+  { fieldName: 'purgeWeightGrams', label: 'Purga (g)', placeholder: '2 g' },
+  { fieldName: 'otherWasteGrams', label: 'Outros desperdícios (g)', placeholder: '1 g' },
 ]
-
-function createId() {
-  return crypto.randomUUID()
-}
 
 function createEmptyMaterialUsage() {
   return {
-    id: createId(),
+    id: createEntityId(),
     materialId: '',
     modelWeightGrams: 0,
     supportWeightGrams: 0,
@@ -60,7 +60,7 @@ function createEmptyMaterialUsage() {
 
 function createEmptyRun() {
   return {
-    id: createId(),
+    id: createEntityId(),
     quantity: 1,
     printTimeHours: 0,
     printTimeMinutesPart: 0,
@@ -74,10 +74,6 @@ function toFormValues(printProfile: PrintProfile): PrintProfileFormInputValues {
     name: printProfile.name,
     printerId: printProfile.printerId,
     slicerProfileName: printProfile.slicerProfileName,
-    layerHeightMm: printProfile.layerHeightMm,
-    nozzleDiameterMm: printProfile.nozzleDiameterMm,
-    infillPercent: printProfile.infillPercent,
-    wallLoops: printProfile.wallLoops,
     printRuns: printProfile.printRuns.map((printRun) => ({
       id: printRun.id,
       quantity: printRun.quantity,
@@ -101,10 +97,6 @@ const emptyFormValues: PrintProfileFormInputValues = {
   name: '',
   printerId: '',
   slicerProfileName: undefined,
-  layerHeightMm: undefined,
-  nozzleDiameterMm: undefined,
-  infillPercent: undefined,
-  wallLoops: undefined,
   printRuns: [createEmptyRun()],
   notes: undefined,
 }
@@ -127,15 +119,12 @@ function RunMaterialsFields({
   return (
     <div className="mt-4 space-y-3">
       {materialFields.map((materialField, materialIndex) => (
-        <div
-          className="rounded-md border border-[#edf1f3] bg-white p-3"
-          key={materialField.id}
-        >
+        <div className="rounded-md border border-[#edf1f3] bg-white p-3" key={materialField.id}>
           <div className="grid gap-3 md:grid-cols-2">
             <label className="space-y-1 text-sm font-medium text-[#34434d] md:col-span-2">
               Material
               <select
-                className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
+                className={inputClassName}
                 {...register(`printRuns.${runIndex}.materials.${materialIndex}.materialId`)}
               >
                 <option value="">Selecione</option>
@@ -147,22 +136,14 @@ function RunMaterialsFields({
               </select>
             </label>
 
-            {materialWeightFields.map(({ fieldName, label }) => (
+            {materialWeightFields.map(({ fieldName, label, placeholder }) => (
               <label className="space-y-1 text-sm font-medium text-[#34434d]" key={fieldName}>
                 {label}
                 <input
-                  className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
+                  className={inputClassName}
                   inputMode="decimal"
                   min="0"
-                  placeholder={
-                    fieldName === 'modelWeightGrams'
-                      ? '42 g'
-                      : fieldName === 'supportWeightGrams'
-                        ? '5 g'
-                        : fieldName === 'purgeWeightGrams'
-                          ? '2 g'
-                          : '1 g'
-                  }
+                  placeholder={placeholder}
                   step="0.01"
                   type="number"
                   {...register(
@@ -206,7 +187,9 @@ export function PrintProfileForm({
   printers,
   printProfile,
   products,
+  slicerProfileOptions,
 }: PrintProfileFormProps) {
+  const slicerProfileOptionsId = useId()
   const {
     control,
     formState: { errors, isSubmitting },
@@ -254,7 +237,7 @@ export function PrintProfileForm({
         <label className="space-y-1 text-sm font-medium text-[#34434d]">
           Nome
           <input
-            className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
+            className={inputClassName}
             placeholder="Porta joias - base preta e tampa dourada"
             {...register('name')}
           />
@@ -265,10 +248,7 @@ export function PrintProfileForm({
 
         <label className="space-y-1 text-sm font-medium text-[#34434d]">
           Produto
-          <select
-            className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
-            {...register('productId')}
-          >
+          <select className={inputClassName} {...register('productId')}>
             <option value="">Avulsa</option>
             {products.map((product) => (
               <option key={product.id} value={product.id}>
@@ -280,10 +260,7 @@ export function PrintProfileForm({
 
         <label className="space-y-1 text-sm font-medium text-[#34434d]">
           Impressora
-          <select
-            className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
-            {...register('printerId')}
-          >
+          <select className={inputClassName} {...register('printerId')}>
             <option value="">Selecione</option>
             {printers.map((printer) => (
               <option key={printer.id} value={printer.id}>
@@ -299,62 +276,16 @@ export function PrintProfileForm({
         <label className="space-y-1 text-sm font-medium text-[#34434d]">
           Perfil do slicer
           <input
-            className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
+            className={inputClassName}
+            list={slicerProfileOptionsId}
             placeholder="0.2mm quality"
             {...register('slicerProfileName')}
           />
-        </label>
-
-        <label className="space-y-1 text-sm font-medium text-[#34434d]">
-          Altura de camada (mm)
-          <input
-            className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
-            inputMode="decimal"
-            min="0"
-            placeholder="0,20 mm"
-            step="0.01"
-            type="number"
-            {...register('layerHeightMm', { valueAsNumber: true })}
-          />
-        </label>
-
-        <label className="space-y-1 text-sm font-medium text-[#34434d]">
-          Bico (mm)
-          <input
-            className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
-            inputMode="decimal"
-            min="0"
-            placeholder="0,40 mm"
-            step="0.01"
-            type="number"
-            {...register('nozzleDiameterMm', { valueAsNumber: true })}
-          />
-        </label>
-
-        <label className="space-y-1 text-sm font-medium text-[#34434d]">
-          Infill (%)
-          <input
-            className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
-            inputMode="decimal"
-            min="0"
-            placeholder="15%"
-            step="0.1"
-            type="number"
-            {...register('infillPercent', { valueAsNumber: true })}
-          />
-        </label>
-
-        <label className="space-y-1 text-sm font-medium text-[#34434d]">
-          Paredes
-          <input
-            className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
-            inputMode="numeric"
-            min="0"
-            placeholder="3"
-            step="1"
-            type="number"
-            {...register('wallLoops', { valueAsNumber: true })}
-          />
+          <datalist id={slicerProfileOptionsId}>
+            {slicerProfileOptions.map((slicerProfileOption) => (
+              <option key={slicerProfileOption} value={slicerProfileOption} />
+            ))}
+          </datalist>
         </label>
       </div>
 
@@ -377,7 +308,7 @@ export function PrintProfileForm({
               <label className="space-y-1 text-sm font-medium text-[#34434d]">
                 Quantidade no plate
                 <input
-                  className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
+                  className={inputClassName}
                   inputMode="numeric"
                   min="1"
                   placeholder="10 unidades"
@@ -390,7 +321,7 @@ export function PrintProfileForm({
               <label className="space-y-1 text-sm font-medium text-[#34434d]">
                 Horas
                 <input
-                  className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
+                  className={inputClassName}
                   inputMode="numeric"
                   min="0"
                   placeholder="3 h"
@@ -403,7 +334,7 @@ export function PrintProfileForm({
               <label className="space-y-1 text-sm font-medium text-[#34434d]">
                 Minutos
                 <input
-                  className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
+                  className={inputClassName}
                   inputMode="numeric"
                   max="59"
                   min="0"
@@ -445,27 +376,19 @@ export function PrintProfileForm({
       <label className="mt-5 block space-y-1 text-sm font-medium text-[#34434d]">
         Observações
         <textarea
-          className="mt-1 min-h-20 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
+          className={textareaClassName}
           placeholder="Configurações do slicer, plates, cores e observações de produção..."
           {...register('notes')}
         />
       </label>
 
       <div className="mt-5 flex flex-wrap gap-2">
-        <button
-          className="inline-flex items-center gap-2 rounded-md bg-[#163b45] px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
-          disabled={isSubmitting}
-          type="submit"
-        >
+        <button className={primaryButtonClassName} disabled={isSubmitting} type="submit">
           <Save className="h-4 w-4" aria-hidden="true" />
           {printProfile === undefined ? 'Salvar impressão' : 'Salvar alterações'}
         </button>
         {printProfile !== undefined && (
-          <button
-            className="inline-flex items-center gap-2 rounded-md border border-[#cfd7dc] bg-white px-4 py-2 text-sm font-medium text-[#34434d]"
-            onClick={onCancelEdit}
-            type="button"
-          >
+          <button className={secondaryButtonClassName} onClick={onCancelEdit} type="button">
             <X className="h-4 w-4" aria-hidden="true" />
             Cancelar edição
           </button>

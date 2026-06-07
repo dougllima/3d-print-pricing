@@ -39,7 +39,7 @@ export type Product = {
   id: string
   name: string
   description?: string
-  category?: string
+  categories: string[]
   notes?: string
   isActive: boolean
   createdAt: string
@@ -70,10 +70,6 @@ export type PrintProfile = {
   printRuns: PrintProfileRun[]
   materialId?: string
   slicerProfileName?: string
-  layerHeightMm?: number
-  nozzleDiameterMm?: number
-  infillPercent?: number
-  wallLoops?: number
   printTimeHours?: number
   modelWeightGrams?: number
   supportWeightGrams?: number

@@ -50,12 +50,16 @@ Use:
 - MVP supports FDM only.
 - Do not add resin support in MVP v1.
 - Product and PrintProfile are separate concepts.
-- UI should call PrintProfile "Impressões".
+- UI should call PrintProfile "Impressoes".
 - A Product is a catalog item.
+- Products may have multiple categories.
+- Product category suggestions should be derived from existing products.
 - A PrintProfile is a specific way to manufacture a product and may contain multiple quantity-specific print runs.
 - A PrintProfile may use one or more materials.
+- PrintProfile may store a slicer profile name, but detailed slicer configuration fields should not be stored until they are used by the product.
 - Saved print run weights and time come from slicer totals and must not be multiplied by quantity again.
 - A CostCalculation is a snapshot and must not change when material or printer data changes later.
+- Archived entities should be hidden from main lists and selection fields by default.
 - Material color HEX/RGB is optional.
 - Material stock tracking is optional and measured in grams.
 - Material remaining stock may be greater than one spool and should be interpreted as multiple spools.

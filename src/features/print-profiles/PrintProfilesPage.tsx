@@ -19,6 +19,20 @@ import {
 } from './printProfileService'
 import type { PrintProfileFormValues } from './printProfileFormSchema'
 
+function sortPrintProfilesByName(printProfiles: PrintProfile[]) {
+  return printProfiles.toSorted((first, second) => first.name.localeCompare(second.name))
+}
+
+function getSlicerProfileOptions(printProfiles: PrintProfile[]) {
+  return Array.from(
+    new Set(
+      printProfiles.flatMap((printProfile) =>
+        printProfile.slicerProfileName === undefined ? [] : [printProfile.slicerProfileName],
+      ),
+    ),
+  ).toSorted()
+}
+
 export function PrintProfilesPage() {
   const repositories = useRepositories()
   const [editingPrintProfile, setEditingPrintProfile] = useState<PrintProfile | undefined>()
@@ -31,9 +45,7 @@ export function PrintProfilesPage() {
   const loadPrintProfiles = useCallback(async () => {
     const savedPrintProfiles = await repositories.printProfiles.list()
 
-    setPrintProfiles(
-      savedPrintProfiles.toSorted((first, second) => first.name.localeCompare(second.name)),
-    )
+    setPrintProfiles(sortPrintProfilesByName(savedPrintProfiles))
   }, [repositories.printProfiles])
 
   useEffect(() => {
@@ -52,9 +64,7 @@ export function PrintProfilesPage() {
           setPrinters(savedPrinters.filter((printer) => printer.isActive))
           setProducts(savedProducts.filter((product) => product.isActive))
           setSettings(savedSettings)
-          setPrintProfiles(
-            savedPrintProfiles.toSorted((first, second) => first.name.localeCompare(second.name)),
-          )
+          setPrintProfiles(sortPrintProfilesByName(savedPrintProfiles))
         }
       })
       .catch(() => {
@@ -77,8 +87,12 @@ export function PrintProfilesPage() {
     repositories.settings,
   ])
 
-  const activePrintProfilesCount = useMemo(
-    () => printProfiles.filter((printProfile) => printProfile.isActive).length,
+  const activePrintProfiles = useMemo(
+    () => printProfiles.filter((printProfile) => printProfile.isActive),
+    [printProfiles],
+  )
+  const slicerProfileOptions = useMemo(
+    () => getSlicerProfileOptions(printProfiles),
     [printProfiles],
   )
 
@@ -114,7 +128,7 @@ export function PrintProfilesPage() {
             </h1>
           </div>
           <div className="rounded-md border border-[#d8dee2] bg-[#fbfcfd] px-3 py-2 text-sm text-[#52616b]">
-            {activePrintProfilesCount} ativas de {printProfiles.length} cadastradas
+            {activePrintProfiles.length} impressão(ões) ativa(s)
           </div>
         </div>
       </header>
@@ -127,18 +141,18 @@ export function PrintProfilesPage() {
           printers={printers}
           printProfile={editingPrintProfile}
           products={products}
+          slicerProfileOptions={slicerProfileOptions}
         />
         <PrintProfileList
           materials={materials}
           onArchive={(printProfile) => updatePrintProfile(printProfile, { isActive: false })}
           onDuplicate={duplicatePrintProfile}
           onEdit={setEditingPrintProfile}
-          onRestore={(printProfile) => updatePrintProfile(printProfile, { isActive: true })}
           onToggleFavorite={(printProfile) =>
             updatePrintProfile(printProfile, { isFavorite: !printProfile.isFavorite })
           }
           printers={printers}
-          printProfiles={printProfiles}
+          printProfiles={activePrintProfiles}
           products={products}
           settings={settings}
         />

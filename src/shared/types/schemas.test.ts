@@ -64,6 +64,19 @@ describe('domain schemas', () => {
     expect(productSchema.safeParse({ ...product, materialId: 'material-1' }).success).toBe(false)
   })
 
+  it('normalizes legacy product category into categories', () => {
+    const product = productSchema.parse({
+      id: 'product-1',
+      name: 'Suporte de controle',
+      category: 'Organização',
+      isActive: true,
+      createdAt: now,
+      updatedAt: now,
+    })
+
+    expect(product.categories).toEqual(['Organização'])
+  })
+
   it('normalizes legacy print profile data into one print run', () => {
     const profile = printProfileSchema.parse({
       id: 'profile-1',

@@ -105,7 +105,7 @@ Requirements:
 - UI labels in Portuguese;
 - add optional spool weight, remaining weight and low-stock threshold fields;
 - validate stock fields with Zod and React Hook Form;
-- remaining weight must not be greater than spool weight when both are provided;
+- remaining weight may be greater than spool weight and should be interpreted as multiple spools;
 - show stock status in the material list;
 - show low-stock information in the dashboard;
 - show a warning in the calculation flow when required material weight exceeds remaining stock;

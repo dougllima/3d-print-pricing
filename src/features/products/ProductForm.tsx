@@ -1,9 +1,15 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Save, X } from 'lucide-react'
 import { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 
-import { inputClassName } from '@/shared/styles'
+import { TagInput } from '@/shared/components'
+import {
+  inputClassName,
+  primaryButtonClassName,
+  secondaryButtonClassName,
+  textareaClassName,
+} from '@/shared/styles'
 import type { Product } from '@/shared/types'
 
 import {
@@ -13,6 +19,7 @@ import {
 } from './productFormSchema'
 
 type ProductFormProps = {
+  categoryOptions: string[]
   onCancelEdit: () => void
   onSubmit: (values: ProductFormValues) => Promise<void>
   product?: Product
@@ -21,12 +28,13 @@ type ProductFormProps = {
 const emptyFormValues: ProductFormInputValues = {
   name: '',
   description: undefined,
-  category: undefined,
+  categories: [],
   notes: undefined,
 }
 
-export function ProductForm({ onCancelEdit, onSubmit, product }: ProductFormProps) {
+export function ProductForm({ categoryOptions, onCancelEdit, onSubmit, product }: ProductFormProps) {
   const {
+    control,
     formState: { errors, isSubmitting },
     handleSubmit,
     register,
@@ -45,7 +53,7 @@ export function ProductForm({ onCancelEdit, onSubmit, product }: ProductFormProp
     reset({
       name: product.name,
       description: product.description,
-      category: product.category,
+      categories: product.categories,
       notes: product.notes,
     })
   }, [product, reset])
@@ -74,14 +82,26 @@ export function ProductForm({ onCancelEdit, onSubmit, product }: ProductFormProp
         </label>
 
         <label className="space-y-1 text-sm font-medium text-[#34434d]">
-          Categoria
-          <input className={inputClassName} placeholder="Organização" {...register('category')} />
+          Categorias
+          <Controller
+            control={control}
+            name="categories"
+            render={({ field }) => (
+              <TagInput
+                addLabel="Adicionar"
+                onChange={field.onChange}
+                placeholder="Organização"
+                suggestions={categoryOptions}
+                value={field.value}
+              />
+            )}
+          />
         </label>
 
         <label className="space-y-1 text-sm font-medium text-[#34434d] md:col-span-2">
           Descrição
           <textarea
-            className="mt-1 min-h-20 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
+            className={textareaClassName}
             placeholder="Produto de catálogo, sem dados de impressão."
             {...register('description')}
           />
@@ -90,7 +110,7 @@ export function ProductForm({ onCancelEdit, onSubmit, product }: ProductFormProp
         <label className="space-y-1 text-sm font-medium text-[#34434d] md:col-span-2">
           Observações
           <textarea
-            className="mt-1 min-h-20 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
+            className={textareaClassName}
             placeholder="Variações, acabamento esperado, detalhes comerciais..."
             {...register('notes')}
           />
@@ -98,20 +118,12 @@ export function ProductForm({ onCancelEdit, onSubmit, product }: ProductFormProp
       </div>
 
       <div className="mt-5 flex flex-wrap gap-2">
-        <button
-          className="inline-flex items-center gap-2 rounded-md bg-[#163b45] px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
-          disabled={isSubmitting}
-          type="submit"
-        >
+        <button className={primaryButtonClassName} disabled={isSubmitting} type="submit">
           <Save className="h-4 w-4" aria-hidden="true" />
           {product === undefined ? 'Salvar produto' : 'Salvar alterações'}
         </button>
         {product !== undefined && (
-          <button
-            className="inline-flex items-center gap-2 rounded-md border border-[#cfd7dc] bg-white px-4 py-2 text-sm font-medium text-[#34434d]"
-            onClick={onCancelEdit}
-            type="button"
-          >
+          <button className={secondaryButtonClassName} onClick={onCancelEdit} type="button">
             <X className="h-4 w-4" aria-hidden="true" />
             Cancelar edição
           </button>

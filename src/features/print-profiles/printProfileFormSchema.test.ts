@@ -9,10 +9,6 @@ describe('printProfileFormSchema', () => {
       name: 'PLA Preto - 0.2mm',
       printerId: 'printer-1',
       slicerProfileName: '',
-      layerHeightMm: 0.2,
-      nozzleDiameterMm: 0.4,
-      infillPercent: 15,
-      wallLoops: 3,
       printRuns: [
         {
           id: 'run-1',

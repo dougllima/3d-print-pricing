@@ -2,17 +2,14 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { useRepositories } from '@/app/useRepositories'
 import type { Material } from '@/shared/types'
+import { createEntityId, createTimestamp } from '@/shared/utils'
 
 import { MaterialForm } from './MaterialForm'
 import { MaterialList } from './MaterialList'
 import type { MaterialFormValues } from './materialFormSchema'
 
-function createMaterialId() {
-  return crypto.randomUUID()
-}
-
-function createTimestamp() {
-  return new Date().toISOString()
+function sortMaterialsByName(materials: Material[]) {
+  return materials.toSorted((first, second) => first.name.localeCompare(second.name))
 }
 
 export function MaterialsPage() {
@@ -23,7 +20,7 @@ export function MaterialsPage() {
   const loadMaterials = useCallback(async () => {
     const savedMaterials = await repositories.materials.list()
 
-    setMaterials(savedMaterials.toSorted((first, second) => first.name.localeCompare(second.name)))
+    setMaterials(sortMaterialsByName(savedMaterials))
   }, [repositories.materials])
 
   useEffect(() => {
@@ -33,9 +30,7 @@ export function MaterialsPage() {
       .list()
       .then((savedMaterials) => {
         if (shouldUpdate) {
-          setMaterials(
-            savedMaterials.toSorted((first, second) => first.name.localeCompare(second.name)),
-          )
+          setMaterials(sortMaterialsByName(savedMaterials))
         }
       })
       .catch(() => {
@@ -49,15 +44,15 @@ export function MaterialsPage() {
     }
   }, [repositories.materials])
 
-  const activeMaterialsCount = useMemo(
-    () => materials.filter((material) => material.isActive).length,
+  const activeMaterials = useMemo(
+    () => materials.filter((material) => material.isActive),
     [materials],
   )
 
   async function saveMaterial(values: MaterialFormValues) {
     const now = createTimestamp()
     const material: Material = {
-      id: editingMaterial?.id ?? createMaterialId(),
+      id: editingMaterial?.id ?? createEntityId(),
       name: values.name,
       type: values.type,
       brand: values.brand,
@@ -79,10 +74,10 @@ export function MaterialsPage() {
     await loadMaterials()
   }
 
-  async function updateMaterialStatus(material: Material, isActive: boolean) {
+  async function archiveMaterial(material: Material) {
     await repositories.materials.save({
       ...material,
-      isActive,
+      isActive: false,
       updatedAt: createTimestamp(),
     })
     await loadMaterials()
@@ -97,7 +92,7 @@ export function MaterialsPage() {
             <h1 className="mt-1 text-2xl font-semibold text-[#17202a]">Catálogo de filamentos</h1>
           </div>
           <div className="rounded-md border border-[#d8dee2] bg-[#fbfcfd] px-3 py-2 text-sm text-[#52616b]">
-            {activeMaterialsCount} ativos de {materials.length} cadastrados
+            {activeMaterials.length} material(is) ativo(s)
           </div>
         </div>
       </header>
@@ -108,12 +103,7 @@ export function MaterialsPage() {
           onCancelEdit={() => setEditingMaterial(undefined)}
           onSubmit={saveMaterial}
         />
-        <MaterialList
-          materials={materials}
-          onArchive={(material) => updateMaterialStatus(material, false)}
-          onEdit={setEditingMaterial}
-          onRestore={(material) => updateMaterialStatus(material, true)}
-        />
+        <MaterialList materials={activeMaterials} onArchive={archiveMaterial} onEdit={setEditingMaterial} />
       </div>
     </div>
   )

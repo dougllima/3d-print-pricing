@@ -1,23 +1,13 @@
-import { Archive, Pencil, RotateCcw } from 'lucide-react'
+import { Archive, Pencil } from 'lucide-react'
 
 import type { Material } from '@/shared/types'
-import { getMaterialStockStatus } from '@/shared/utils'
+import { formatCurrency, formatWeightGrams, getMaterialStockStatus } from '@/shared/utils'
 
 type MaterialListProps = {
   materials: Material[]
   onArchive: (material: Material) => Promise<void>
   onEdit: (material: Material) => void
-  onRestore: (material: Material) => Promise<void>
 }
-
-const currencyFormatter = new Intl.NumberFormat('pt-BR', {
-  currency: 'BRL',
-  style: 'currency',
-})
-
-const weightFormatter = new Intl.NumberFormat('pt-BR', {
-  maximumFractionDigits: 1,
-})
 
 const stockStatusLabels = {
   'not-tracked': 'Sem controle',
@@ -33,15 +23,15 @@ const stockStatusClasses = {
   empty: 'bg-[#fde8e4] text-[#b42318]',
 } as const
 
-function formatWeight(weightGrams: number | undefined) {
-  return weightGrams === undefined ? '-' : `${weightFormatter.format(weightGrams)} g`
+function formatOptionalWeight(weightGrams: number | undefined) {
+  return weightGrams === undefined ? '-' : formatWeightGrams(weightGrams)
 }
 
-export function MaterialList({ materials, onArchive, onEdit, onRestore }: MaterialListProps) {
+export function MaterialList({ materials, onArchive, onEdit }: MaterialListProps) {
   if (materials.length === 0) {
     return (
       <section className="rounded-md border border-[#d8dee2] bg-white p-5 text-sm text-[#52616b] shadow-sm">
-        Nenhum material cadastrado.
+        Nenhum material ativo cadastrado.
       </section>
     )
   }
@@ -71,9 +61,6 @@ export function MaterialList({ materials, onArchive, onEdit, onRestore }: Materi
                   <span className="rounded-md bg-[#e8eef0] px-2 py-1 text-xs font-medium text-[#52616b]">
                     {material.type}
                   </span>
-                  <span className="rounded-md bg-[#f3e7d7] px-2 py-1 text-xs font-medium text-[#9a5b25]">
-                    {material.isActive ? 'Ativo' : 'Arquivado'}
-                  </span>
                   <span
                     className={`rounded-md px-2 py-1 text-xs font-medium ${stockStatusClasses[stockStatus]}`}
                   >
@@ -83,7 +70,7 @@ export function MaterialList({ materials, onArchive, onEdit, onRestore }: Materi
                 <dl className="mt-3 grid gap-2 text-sm text-[#52616b] sm:grid-cols-2 xl:grid-cols-3">
                   <div>
                     <dt className="text-xs uppercase text-[#697782]">Preço por kg</dt>
-                    <dd>{currencyFormatter.format(material.pricePerKg)}</dd>
+                    <dd>{formatCurrency(material.pricePerKg)}</dd>
                   </div>
                   <div>
                     <dt className="text-xs uppercase text-[#697782]">Marca</dt>
@@ -99,15 +86,15 @@ export function MaterialList({ materials, onArchive, onEdit, onRestore }: Materi
                   </div>
                   <div>
                     <dt className="text-xs uppercase text-[#697782]">Rolo</dt>
-                    <dd>{formatWeight(material.spoolWeightGrams)}</dd>
+                    <dd>{formatOptionalWeight(material.spoolWeightGrams)}</dd>
                   </div>
                   <div>
                     <dt className="text-xs uppercase text-[#697782]">Restante</dt>
-                    <dd>{formatWeight(material.remainingWeightGrams)}</dd>
+                    <dd>{formatOptionalWeight(material.remainingWeightGrams)}</dd>
                   </div>
                   <div>
                     <dt className="text-xs uppercase text-[#697782]">Alerta</dt>
-                    <dd>{formatWeight(material.lowStockThresholdGrams)}</dd>
+                    <dd>{formatOptionalWeight(material.lowStockThresholdGrams)}</dd>
                   </div>
                 </dl>
                 {material.notes && <p className="mt-3 text-sm text-[#52616b]">{material.notes}</p>}
@@ -122,25 +109,14 @@ export function MaterialList({ materials, onArchive, onEdit, onRestore }: Materi
                   <Pencil className="h-4 w-4" aria-hidden="true" />
                   Editar
                 </button>
-                {material.isActive ? (
-                  <button
-                    className="inline-flex items-center gap-2 rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm font-medium text-[#34434d]"
-                    onClick={() => void onArchive(material)}
-                    type="button"
-                  >
-                    <Archive className="h-4 w-4" aria-hidden="true" />
-                    Arquivar
-                  </button>
-                ) : (
-                  <button
-                    className="inline-flex items-center gap-2 rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm font-medium text-[#34434d]"
-                    onClick={() => void onRestore(material)}
-                    type="button"
-                  >
-                    <RotateCcw className="h-4 w-4" aria-hidden="true" />
-                    Reativar
-                  </button>
-                )}
+                <button
+                  className="inline-flex items-center gap-2 rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm font-medium text-[#34434d]"
+                  onClick={() => void onArchive(material)}
+                  type="button"
+                >
+                  <Archive className="h-4 w-4" aria-hidden="true" />
+                  Arquivar
+                </button>
               </div>
             </article>
           )

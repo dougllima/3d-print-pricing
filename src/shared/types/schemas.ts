@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 import { materialTypes } from './domain'
+import type { PrintProfile, Product } from './domain'
 
 const hexColorRegex = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/
 
@@ -46,16 +47,40 @@ export const printerSchema = z.object({
   updatedAt: dateTimeSchema,
 }).strict()
 
-export const productSchema = z.object({
+const legacyProductSchema = z.object({
   id: requiredTextSchema,
   name: requiredTextSchema,
   description: optionalTextSchema,
   category: optionalTextSchema,
+  categories: z.array(requiredTextSchema).optional(),
   notes: optionalTextSchema,
   isActive: z.boolean(),
   createdAt: dateTimeSchema,
   updatedAt: dateTimeSchema,
 }).strict()
+
+export const productSchema = legacyProductSchema.transform((product): Product => {
+  const legacyCategory = product.category === undefined ? [] : [product.category]
+
+  const normalizedProduct: Product = {
+    id: product.id,
+    name: product.name,
+    categories: product.categories ?? legacyCategory,
+    isActive: product.isActive,
+    createdAt: product.createdAt,
+    updatedAt: product.updatedAt,
+  }
+
+  if (product.description !== undefined) {
+    normalizedProduct.description = product.description
+  }
+
+  if (product.notes !== undefined) {
+    normalizedProduct.notes = product.notes
+  }
+
+  return normalizedProduct
+})
 
 export const printProfileMaterialUsageSchema = z.object({
   id: requiredTextSchema,
@@ -97,37 +122,84 @@ const legacyPrintProfileSchema = z.object({
   updatedAt: dateTimeSchema,
 }).strict()
 
-export const printProfileSchema = legacyPrintProfileSchema.transform((printProfile) => {
-  if (printProfile.printRuns !== undefined) {
-    return {
-      ...printProfile,
-      printRuns: printProfile.printRuns,
-    }
+export const printProfileSchema = legacyPrintProfileSchema.transform((printProfile): PrintProfile => {
+  const normalizedPrintProfile: PrintProfile = {
+    id: printProfile.id,
+    name: printProfile.name,
+    printerId: printProfile.printerId,
+    printRuns: printProfile.printRuns ?? [],
+    isActive: printProfile.isActive,
+    createdAt: printProfile.createdAt,
+    updatedAt: printProfile.updatedAt,
   }
 
-  return {
-    ...printProfile,
-    printRuns:
-      printProfile.materialId === undefined
-        ? []
-        : [
-            {
-              id: `${printProfile.id}-run-1`,
-              quantity: 1,
-              printTimeMinutes: Math.round((printProfile.printTimeHours ?? 0) * 60),
-              materials: [
-                {
-                  id: `${printProfile.id}-material-1`,
-                  materialId: printProfile.materialId,
-                  modelWeightGrams: printProfile.modelWeightGrams ?? 0,
-                  supportWeightGrams: printProfile.supportWeightGrams ?? 0,
-                  purgeWeightGrams: printProfile.purgeWeightGrams ?? 0,
-                  otherWasteGrams: printProfile.otherWasteGrams ?? 0,
-                },
-              ],
-            },
-          ],
+  if (printProfile.productId !== undefined) {
+    normalizedPrintProfile.productId = printProfile.productId
   }
+
+  if (printProfile.materialId !== undefined) {
+    normalizedPrintProfile.materialId = printProfile.materialId
+  }
+
+  if (printProfile.slicerProfileName !== undefined) {
+    normalizedPrintProfile.slicerProfileName = printProfile.slicerProfileName
+  }
+
+  if (printProfile.printTimeHours !== undefined) {
+    normalizedPrintProfile.printTimeHours = printProfile.printTimeHours
+  }
+
+  if (printProfile.modelWeightGrams !== undefined) {
+    normalizedPrintProfile.modelWeightGrams = printProfile.modelWeightGrams
+  }
+
+  if (printProfile.supportWeightGrams !== undefined) {
+    normalizedPrintProfile.supportWeightGrams = printProfile.supportWeightGrams
+  }
+
+  if (printProfile.purgeWeightGrams !== undefined) {
+    normalizedPrintProfile.purgeWeightGrams = printProfile.purgeWeightGrams
+  }
+
+  if (printProfile.otherWasteGrams !== undefined) {
+    normalizedPrintProfile.otherWasteGrams = printProfile.otherWasteGrams
+  }
+
+  if (printProfile.notes !== undefined) {
+    normalizedPrintProfile.notes = printProfile.notes
+  }
+
+  if (printProfile.isFavorite !== undefined) {
+    normalizedPrintProfile.isFavorite = printProfile.isFavorite
+  }
+
+  if (printProfile.printRuns !== undefined) {
+    return normalizedPrintProfile
+  }
+
+  if (printProfile.materialId === undefined) {
+    return normalizedPrintProfile
+  }
+
+  normalizedPrintProfile.printRuns = [
+    {
+      id: `${printProfile.id}-run-1`,
+      quantity: 1,
+      printTimeMinutes: Math.round((printProfile.printTimeHours ?? 0) * 60),
+      materials: [
+        {
+          id: `${printProfile.id}-material-1`,
+          materialId: printProfile.materialId,
+          modelWeightGrams: printProfile.modelWeightGrams ?? 0,
+          supportWeightGrams: printProfile.supportWeightGrams ?? 0,
+          purgeWeightGrams: printProfile.purgeWeightGrams ?? 0,
+          otherWasteGrams: printProfile.otherWasteGrams ?? 0,
+        },
+      ],
+    },
+  ]
+
+  return normalizedPrintProfile
 })
 
 export const finishingTaskSchema = z.object({

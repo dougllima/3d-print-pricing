@@ -1,4 +1,4 @@
-import { Archive, Copy, Pencil, RotateCcw, Star } from 'lucide-react'
+import { Archive, Copy, Pencil, Star } from 'lucide-react'
 
 import type { GlobalSettings, Material, Printer, PrintProfile, Product } from '@/shared/types'
 import { cn, formatCurrency, formatMinutes, formatWeightGrams } from '@/shared/utils'
@@ -10,7 +10,6 @@ type PrintProfileListProps = {
   onArchive: (printProfile: PrintProfile) => Promise<void>
   onDuplicate: (printProfile: PrintProfile) => Promise<void>
   onEdit: (printProfile: PrintProfile) => void
-  onRestore: (printProfile: PrintProfile) => Promise<void>
   onToggleFavorite: (printProfile: PrintProfile) => Promise<void>
   printers: Printer[]
   printProfiles: PrintProfile[]
@@ -31,7 +30,6 @@ export function PrintProfileList({
   onArchive,
   onDuplicate,
   onEdit,
-  onRestore,
   onToggleFavorite,
   printers,
   printProfiles,
@@ -41,7 +39,7 @@ export function PrintProfileList({
   if (printProfiles.length === 0) {
     return (
       <section className="rounded-md border border-[#d8dee2] bg-white p-5 text-sm text-[#52616b] shadow-sm">
-        Nenhuma impressão cadastrada.
+        Nenhuma impressão ativa cadastrada.
       </section>
     )
   }
@@ -65,9 +63,6 @@ export function PrintProfileList({
                   <h3 className="font-semibold text-[#17202a]">{printProfile.name}</h3>
                   <span className="rounded-md bg-[#e8eef0] px-2 py-1 text-xs font-medium text-[#52616b]">
                     {findEntityName(products, printProfile.productId)}
-                  </span>
-                  <span className="rounded-md bg-[#f3e7d7] px-2 py-1 text-xs font-medium text-[#9a5b25]">
-                    {printProfile.isActive ? 'Ativa' : 'Arquivada'}
                   </span>
                   {printProfile.isFavorite && (
                     <span className="rounded-md bg-[#dcebed] px-2 py-1 text-xs font-medium text-[#163b45]">
@@ -167,25 +162,14 @@ export function PrintProfileList({
                   <Copy className="h-4 w-4" aria-hidden="true" />
                   Duplicar
                 </button>
-                {printProfile.isActive ? (
-                  <button
-                    className="inline-flex items-center gap-2 rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm font-medium text-[#34434d]"
-                    onClick={() => void onArchive(printProfile)}
-                    type="button"
-                  >
-                    <Archive className="h-4 w-4" aria-hidden="true" />
-                    Arquivar
-                  </button>
-                ) : (
-                  <button
-                    className="inline-flex items-center gap-2 rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm font-medium text-[#34434d]"
-                    onClick={() => void onRestore(printProfile)}
-                    type="button"
-                  >
-                    <RotateCcw className="h-4 w-4" aria-hidden="true" />
-                    Reativar
-                  </button>
-                )}
+                <button
+                  className="inline-flex items-center gap-2 rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm font-medium text-[#34434d]"
+                  onClick={() => void onArchive(printProfile)}
+                  type="button"
+                >
+                  <Archive className="h-4 w-4" aria-hidden="true" />
+                  Arquivar
+                </button>
               </div>
             </article>
           )

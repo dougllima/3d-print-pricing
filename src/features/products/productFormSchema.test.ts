@@ -3,11 +3,11 @@ import { describe, expect, it } from 'vitest'
 import { productFormSchema } from './productFormSchema'
 
 describe('productFormSchema', () => {
-  it('accepts catalog-only product data', () => {
+  it('accepts catalog-only product data with multiple categories', () => {
     const result = productFormSchema.safeParse({
       name: 'Suporte de controle',
       description: '',
-      category: 'Organização',
+      categories: ['Organizacao', 'Casa'],
       notes: '',
     })
 
@@ -15,7 +15,7 @@ describe('productFormSchema', () => {
     expect(result.data).toEqual({
       name: 'Suporte de controle',
       description: undefined,
-      category: 'Organização',
+      categories: ['Organizacao', 'Casa'],
       notes: undefined,
     })
   })

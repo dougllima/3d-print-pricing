@@ -47,10 +47,6 @@ describe('printProfileService', () => {
           },
         ],
         slicerProfileName: undefined,
-        layerHeightMm: undefined,
-        nozzleDiameterMm: undefined,
-        infillPercent: undefined,
-        wallLoops: undefined,
         notes: undefined,
       },
     })

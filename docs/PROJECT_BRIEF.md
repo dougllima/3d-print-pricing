@@ -52,7 +52,6 @@ Not included in MVP v1:
 - Backend.
 - Login.
 - PDF generation.
-- Inventory control.
 - Full inventory control with stock movements.
 - Charts.
 - Formal quote generation.
@@ -74,11 +73,15 @@ A physical FDM printer used to calculate energy, depreciation and maintenance co
 
 A catalog item. It does not directly store material, slicer settings, print time or weight.
 
+Products may have multiple categories. Category options are derived from categories already used by products.
+
 ### PrintProfile
 
-A specific way to manufacture a product. In the UI, this should be called "Impressão" or "Impressões".
+A specific way to manufacture a product. In the UI, this should be called "Impressao" or "Impressoes".
 
-A product can have multiple print profiles.
+A product can have multiple print profiles. Each print profile may contain multiple quantity-specific print runs and each run may use one or more materials.
+
+Print run weight and time values come from slicer totals for that quantity and must not be multiplied by quantity again.
 
 ### CostCalculation
 
@@ -107,13 +110,13 @@ Examples:
 - Materiais
 - Impressoras
 - Produtos
-- Impressões
-- Novo cálculo
-- Histórico
-- Configurações
-- Custo de impressão
+- Impressoes
+- Novo calculo
+- Historico
+- Configuracoes
+- Custo de impressao
 - Custo de acabamento
-- Preço sugerido
+- Preco sugerido
 
 ## Code language
 

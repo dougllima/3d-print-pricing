@@ -4,7 +4,12 @@ import { useEffect, useMemo } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 
 import { CurrencyInput } from '@/shared/components'
-import { inputClassName } from '@/shared/styles'
+import {
+  inputClassName,
+  primaryButtonClassName,
+  secondaryButtonClassName,
+  textareaClassName,
+} from '@/shared/styles'
 import { materialTypes, type Material } from '@/shared/types'
 
 import {
@@ -50,14 +55,12 @@ export function MaterialForm({ material, onCancelEdit, onSubmit }: MaterialFormP
     defaultValues: emptyFormValues,
   })
 
-  const colorHex = useWatch({ control, name: 'colorHex' })
   const watchedSpoolWeightGrams = useWatch({ control, name: 'spoolWeightGrams' })
   const watchedRemainingWeightGrams = useWatch({ control, name: 'remainingWeightGrams' })
   const spoolWeightGrams =
     typeof watchedSpoolWeightGrams === 'number' ? watchedSpoolWeightGrams : undefined
   const remainingWeightGrams =
     typeof watchedRemainingWeightGrams === 'number' ? watchedRemainingWeightGrams : undefined
-  const previewColor = typeof colorHex === 'string' && colorHex !== '' ? colorHex : '#ffffff'
   const spoolEstimate = useMemo(() => {
     if (
       spoolWeightGrams === undefined ||
@@ -101,11 +104,9 @@ export function MaterialForm({ material, onCancelEdit, onSubmit }: MaterialFormP
       className="rounded-md border border-[#d8dee2] bg-white p-5 shadow-sm"
       onSubmit={handleSubmit(submit)}
     >
-      <div className="flex flex-col gap-1">
-        <h2 className="text-lg font-semibold text-[#17202a]">
-          {material === undefined ? 'Novo material' : 'Editar material'}
-        </h2>
-      </div>
+      <h2 className="text-lg font-semibold text-[#17202a]">
+        {material === undefined ? 'Novo material' : 'Editar material'}
+      </h2>
 
       <div className="mt-5 grid gap-4 md:grid-cols-2">
         <label className="space-y-1 text-sm font-medium text-[#34434d]">
@@ -159,16 +160,40 @@ export function MaterialForm({ material, onCancelEdit, onSubmit }: MaterialFormP
         <label className="space-y-1 text-sm font-medium text-[#34434d]">
           Cor HEX
           <span className="mt-1 flex gap-2">
-            <input
-              className="w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
-              placeholder="#111827"
-              {...register('colorHex')}
+            <Controller
+              control={control}
+              name="colorHex"
+              render={({ field }) => (
+                <input
+                  aria-label="Selecionar cor"
+                  className="h-10 w-12 shrink-0 rounded-md border border-[#cfd7dc] bg-white p-1"
+                  onChange={(event) => field.onChange(event.target.value)}
+                  type="color"
+                  value={typeof field.value === 'string' ? field.value : '#ffffff'}
+                />
+              )}
             />
-            <span
-              aria-label="Prévia da cor"
-              className="h-10 w-10 shrink-0 rounded-md border border-[#cfd7dc]"
-              style={{ backgroundColor: previewColor }}
-            />
+            <span className="flex w-full rounded-md border border-[#cfd7dc] bg-white focus-within:border-[#1f7a78]">
+              <span className="flex items-center border-r border-[#cfd7dc] px-3 text-sm text-[#697782]">
+                #
+              </span>
+              <Controller
+                control={control}
+                name="colorHex"
+                render={({ field }) => (
+                  <input
+                    className="w-full rounded-r-md bg-white px-3 py-2 text-sm uppercase outline-none"
+                    maxLength={6}
+                    onChange={(event) => {
+                      const colorValue = event.target.value.replace(/[^0-9a-fA-F]/g, '')
+                      field.onChange(colorValue === '' ? undefined : `#${colorValue}`)
+                    }}
+                    placeholder="111827"
+                    value={typeof field.value === 'string' ? field.value.replace('#', '') : ''}
+                  />
+                )}
+              />
+            </span>
           </span>
           {errors.colorHex && (
             <span className="block text-xs text-[#b42318]">{errors.colorHex.message}</span>
@@ -242,7 +267,7 @@ export function MaterialForm({ material, onCancelEdit, onSubmit }: MaterialFormP
         <label className="space-y-1 text-sm font-medium text-[#34434d] md:col-span-2">
           Observações
           <textarea
-            className="mt-1 min-h-24 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
+            className={textareaClassName}
             placeholder="Lote, fornecedor, comportamento de impressão..."
             {...register('notes')}
           />
@@ -250,20 +275,12 @@ export function MaterialForm({ material, onCancelEdit, onSubmit }: MaterialFormP
       </div>
 
       <div className="mt-5 flex flex-wrap gap-2">
-        <button
-          className="inline-flex items-center gap-2 rounded-md bg-[#163b45] px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
-          disabled={isSubmitting}
-          type="submit"
-        >
+        <button className={primaryButtonClassName} disabled={isSubmitting} type="submit">
           <Save className="h-4 w-4" aria-hidden="true" />
           {material === undefined ? 'Salvar material' : 'Salvar alterações'}
         </button>
         {material !== undefined && (
-          <button
-            className="inline-flex items-center gap-2 rounded-md border border-[#cfd7dc] bg-white px-4 py-2 text-sm font-medium text-[#34434d]"
-            onClick={onCancelEdit}
-            type="button"
-          >
+          <button className={secondaryButtonClassName} onClick={onCancelEdit} type="button">
             <X className="h-4 w-4" aria-hidden="true" />
             Cancelar edição
           </button>
