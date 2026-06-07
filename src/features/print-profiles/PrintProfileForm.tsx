@@ -1,8 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Plus, Save, Trash2, X } from 'lucide-react'
 import { useEffect, useId } from 'react'
-import { useFieldArray, useForm, type Control, type UseFormRegister } from 'react-hook-form'
+import { Controller, useFieldArray, useForm, type Control, type UseFormRegister } from 'react-hook-form'
 
+import { UnitInput } from '@/shared/components'
 import { inputClassName, primaryButtonClassName, secondaryButtonClassName, textareaClassName } from '@/shared/styles'
 import type { Material, Printer, PrintProfile, Product } from '@/shared/types'
 import { createEntityId } from '@/shared/utils'
@@ -139,16 +140,19 @@ function RunMaterialsFields({
             {materialWeightFields.map(({ fieldName, label, placeholder }) => (
               <label className="space-y-1 text-sm font-medium text-[#34434d]" key={fieldName}>
                 {label}
-                <input
-                  className={inputClassName}
-                  inputMode="decimal"
-                  min="0"
-                  placeholder={placeholder}
-                  step="0.01"
-                  type="number"
-                  {...register(
-                    `printRuns.${runIndex}.materials.${materialIndex}.${fieldName}`,
-                    { valueAsNumber: true },
+                <Controller
+                  control={control}
+                  name={`printRuns.${runIndex}.materials.${materialIndex}.${fieldName}`}
+                  render={({ field }) => (
+                    <UnitInput
+                      max={59}
+                      min={0}
+                      onChange={field.onChange}
+                      placeholder={placeholder.replace(' g', '')}
+                      step={0.01}
+                      unit="g"
+                      value={typeof field.value === 'number' ? field.value : undefined}
+                    />
                   )}
                 />
               </label>
@@ -222,6 +226,11 @@ export function PrintProfileForm({
   async function submit(values: PrintProfileFormValues) {
     await onSubmit(values)
     reset(emptyFormValues)
+  }
+
+  function cancelEdit() {
+    reset(emptyFormValues)
+    onCancelEdit()
   }
 
   return (
@@ -307,43 +316,55 @@ export function PrintProfileForm({
             <div className="grid gap-4 md:grid-cols-3">
               <label className="space-y-1 text-sm font-medium text-[#34434d]">
                 Quantidade no plate
-                <input
-                  className={inputClassName}
-                  inputMode="numeric"
-                  min="1"
-                  placeholder="10 unidades"
-                  step="1"
-                  type="number"
-                  {...register(`printRuns.${runIndex}.quantity`, { valueAsNumber: true })}
+                <Controller
+                  control={control}
+                  name={`printRuns.${runIndex}.quantity`}
+                  render={({ field }) => (
+                    <UnitInput
+                      min={1}
+                      onChange={field.onChange}
+                      placeholder="10"
+                      step={1}
+                      unit="un."
+                      value={typeof field.value === 'number' ? field.value : undefined}
+                    />
+                  )}
                 />
               </label>
 
               <label className="space-y-1 text-sm font-medium text-[#34434d]">
                 Horas
-                <input
-                  className={inputClassName}
-                  inputMode="numeric"
-                  min="0"
-                  placeholder="3 h"
-                  step="1"
-                  type="number"
-                  {...register(`printRuns.${runIndex}.printTimeHours`, { valueAsNumber: true })}
+                <Controller
+                  control={control}
+                  name={`printRuns.${runIndex}.printTimeHours`}
+                  render={({ field }) => (
+                    <UnitInput
+                      min={0}
+                      onChange={field.onChange}
+                      placeholder="3"
+                      step={1}
+                      unit="h"
+                      value={typeof field.value === 'number' ? field.value : undefined}
+                    />
+                  )}
                 />
               </label>
 
               <label className="space-y-1 text-sm font-medium text-[#34434d]">
                 Minutos
-                <input
-                  className={inputClassName}
-                  inputMode="numeric"
-                  max="59"
-                  min="0"
-                  placeholder="45 min"
-                  step="1"
-                  type="number"
-                  {...register(`printRuns.${runIndex}.printTimeMinutesPart`, {
-                    valueAsNumber: true,
-                  })}
+                <Controller
+                  control={control}
+                  name={`printRuns.${runIndex}.printTimeMinutesPart`}
+                  render={({ field }) => (
+                    <UnitInput
+                      min={0}
+                      onChange={field.onChange}
+                      placeholder="45"
+                      step={1}
+                      unit="min"
+                      value={typeof field.value === 'number' ? field.value : undefined}
+                    />
+                  )}
                 />
               </label>
             </div>
@@ -388,7 +409,7 @@ export function PrintProfileForm({
           {printProfile === undefined ? 'Salvar impressão' : 'Salvar alterações'}
         </button>
         {printProfile !== undefined && (
-          <button className={secondaryButtonClassName} onClick={onCancelEdit} type="button">
+          <button className={secondaryButtonClassName} onClick={cancelEdit} type="button">
             <X className="h-4 w-4" aria-hidden="true" />
             Cancelar edição
           </button>

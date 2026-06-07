@@ -3,7 +3,7 @@ import { Save, X } from 'lucide-react'
 import { useEffect, useMemo } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 
-import { CurrencyInput } from '@/shared/components'
+import { CurrencyInput, UnitInput } from '@/shared/components'
 import {
   inputClassName,
   primaryButtonClassName,
@@ -97,6 +97,11 @@ export function MaterialForm({ material, onCancelEdit, onSubmit }: MaterialFormP
   async function submit(values: MaterialFormValues) {
     await onSubmit(values)
     reset(emptyFormValues)
+  }
+
+  function cancelEdit() {
+    reset(emptyFormValues)
+    onCancelEdit()
   }
 
   return (
@@ -207,14 +212,19 @@ export function MaterialForm({ material, onCancelEdit, onSubmit }: MaterialFormP
 
         <label className="space-y-1 text-sm font-medium text-[#34434d]">
           Peso por rolo
-          <input
-            className={inputClassName}
-            inputMode="decimal"
-            min="0"
-            placeholder="1000 g"
-            step="0.01"
-            type="number"
-            {...register('spoolWeightGrams', { valueAsNumber: true })}
+          <Controller
+            control={control}
+            name="spoolWeightGrams"
+            render={({ field }) => (
+              <UnitInput
+                min={0}
+                onChange={field.onChange}
+                placeholder="1000"
+                step={0.01}
+                unit="g"
+                value={typeof field.value === 'number' ? field.value : undefined}
+              />
+            )}
           />
           {errors.spoolWeightGrams && (
             <span className="block text-xs text-[#b42318]">
@@ -225,14 +235,19 @@ export function MaterialForm({ material, onCancelEdit, onSubmit }: MaterialFormP
 
         <label className="space-y-1 text-sm font-medium text-[#34434d]">
           Filamento restante
-          <input
-            className={inputClassName}
-            inputMode="decimal"
-            min="0"
-            placeholder="1500 g"
-            step="0.01"
-            type="number"
-            {...register('remainingWeightGrams', { valueAsNumber: true })}
+          <Controller
+            control={control}
+            name="remainingWeightGrams"
+            render={({ field }) => (
+              <UnitInput
+                min={0}
+                onChange={field.onChange}
+                placeholder="1500"
+                step={0.01}
+                unit="g"
+                value={typeof field.value === 'number' ? field.value : undefined}
+              />
+            )}
           />
           {spoolEstimate !== undefined && (
             <span className="block text-xs text-[#52616b]">
@@ -248,14 +263,19 @@ export function MaterialForm({ material, onCancelEdit, onSubmit }: MaterialFormP
 
         <label className="space-y-1 text-sm font-medium text-[#34434d]">
           Alerta de estoque baixo
-          <input
-            className={inputClassName}
-            inputMode="decimal"
-            min="0"
-            placeholder="150 g"
-            step="0.01"
-            type="number"
-            {...register('lowStockThresholdGrams', { valueAsNumber: true })}
+          <Controller
+            control={control}
+            name="lowStockThresholdGrams"
+            render={({ field }) => (
+              <UnitInput
+                min={0}
+                onChange={field.onChange}
+                placeholder="150"
+                step={0.01}
+                unit="g"
+                value={typeof field.value === 'number' ? field.value : undefined}
+              />
+            )}
           />
           {errors.lowStockThresholdGrams && (
             <span className="block text-xs text-[#b42318]">
@@ -280,7 +300,7 @@ export function MaterialForm({ material, onCancelEdit, onSubmit }: MaterialFormP
           {material === undefined ? 'Salvar material' : 'Salvar alterações'}
         </button>
         {material !== undefined && (
-          <button className={secondaryButtonClassName} onClick={onCancelEdit} type="button">
+          <button className={secondaryButtonClassName} onClick={cancelEdit} type="button">
             <X className="h-4 w-4" aria-hidden="true" />
             Cancelar edição
           </button>

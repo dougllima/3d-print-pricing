@@ -63,6 +63,11 @@ export function ProductForm({ categoryOptions, onCancelEdit, onSubmit, product }
     reset(emptyFormValues)
   }
 
+  function cancelEdit() {
+    reset(emptyFormValues)
+    onCancelEdit()
+  }
+
   return (
     <form
       className="rounded-md border border-[#d8dee2] bg-white p-5 shadow-sm"
@@ -123,7 +128,7 @@ export function ProductForm({ categoryOptions, onCancelEdit, onSubmit, product }
           {product === undefined ? 'Salvar produto' : 'Salvar alterações'}
         </button>
         {product !== undefined && (
-          <button className={secondaryButtonClassName} onClick={onCancelEdit} type="button">
+          <button className={secondaryButtonClassName} onClick={cancelEdit} type="button">
             <X className="h-4 w-4" aria-hidden="true" />
             Cancelar edição
           </button>

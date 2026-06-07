@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 
 import { useRepositories } from '@/app/useRepositories'
-import { CurrencyInput } from '@/shared/components'
+import { CurrencyInput, UnitInput } from '@/shared/components'
 import type {
   CostCalculation,
   FinishingTask,
@@ -49,6 +49,32 @@ const emptyFinishingValues = {
   hourlyRate: 0,
   materialCost: 0,
 }
+
+const calculationNumberFields: Array<{
+  fieldName: keyof Pick<
+    CalculationFormInputValues,
+    | 'quantity'
+    | 'printTimeHours'
+    | 'modelWeightGrams'
+    | 'supportWeightGrams'
+    | 'purgeWeightGrams'
+    | 'otherWasteGrams'
+    | 'profitMarginPercent'
+    | 'failureRatePercent'
+  >
+  label: string
+  step: number
+  unit: string
+}> = [
+  { fieldName: 'quantity', label: 'Quantidade', step: 1, unit: 'un.' },
+  { fieldName: 'printTimeHours', label: 'Tempo de impressão', step: 0.01, unit: 'h' },
+  { fieldName: 'modelWeightGrams', label: 'Peso do modelo', step: 0.01, unit: 'g' },
+  { fieldName: 'supportWeightGrams', label: 'Suportes', step: 0.01, unit: 'g' },
+  { fieldName: 'purgeWeightGrams', label: 'Purga', step: 0.01, unit: 'g' },
+  { fieldName: 'otherWasteGrams', label: 'Outros desperdícios', step: 0.01, unit: 'g' },
+  { fieldName: 'profitMarginPercent', label: 'Margem de lucro', step: 0.1, unit: '%' },
+  { fieldName: 'failureRatePercent', label: 'Taxa de falha', step: 0.1, unit: '%' },
+]
 
 function createCalculationId() {
   return crypto.randomUUID()
@@ -434,26 +460,21 @@ export function NewCalculationPage() {
                 </div>
               )}
 
-              {[
-                ['quantity', 'Quantidade', 1],
-                ['printTimeHours', 'Tempo de impressão', 0.01],
-                ['modelWeightGrams', 'Peso do modelo', 0.01],
-                ['supportWeightGrams', 'Suportes', 0.01],
-                ['purgeWeightGrams', 'Purga', 0.01],
-                ['otherWasteGrams', 'Outros desperdícios', 0.01],
-                ['profitMarginPercent', 'Margem de lucro', 0.1],
-                ['failureRatePercent', 'Taxa de falha', 0.1],
-              ].map(([fieldName, label, step]) => (
+              {calculationNumberFields.map(({ fieldName, label, step, unit }) => (
                 <label className="space-y-1 text-sm font-medium text-[#34434d]" key={fieldName}>
                   {label}
-                  <input
-                    className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
-                    min="0"
-                    step={step}
-                    type="number"
-                    {...register(fieldName as keyof CalculationFormInputValues, {
-                      valueAsNumber: true,
-                    })}
+                  <Controller
+                    control={control}
+                    name={fieldName}
+                    render={({ field }) => (
+                      <UnitInput
+                        min={0}
+                        onChange={field.onChange}
+                        step={step}
+                        unit={unit}
+                        value={typeof field.value === 'number' ? field.value : undefined}
+                      />
+                    )}
                   />
                 </label>
               ))}
@@ -489,12 +510,20 @@ export function NewCalculationPage() {
                 placeholder="Nome"
                 {...finishingForm.register('name')}
               />
-              <input
-                className="rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
-                min="0"
-                step="0.01"
-                type="number"
-                {...finishingForm.register('hours', { valueAsNumber: true })}
+              <Controller
+                control={finishingForm.control}
+                name="hours"
+                render={({ field }) => (
+                  <UnitInput
+                    containerClassName=""
+                    min={0}
+                    onChange={field.onChange}
+                    placeholder="1"
+                    step={0.01}
+                    unit="h"
+                    value={typeof field.value === 'number' ? field.value : undefined}
+                  />
+                )}
               />
               <Controller
                 control={finishingForm.control}

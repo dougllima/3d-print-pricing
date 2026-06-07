@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 
 import { useRepositories } from '@/app/useRepositories'
-import { CurrencyInput } from '@/shared/components'
+import { CurrencyInput, UnitInput } from '@/shared/components'
 import type { GlobalSettings } from '@/shared/types'
 import { defaultSettings } from '@/shared/types'
 
@@ -42,7 +42,6 @@ export function SettingsPage() {
     control,
     formState: { errors, isSubmitting },
     handleSubmit,
-    register,
     reset,
   } = useForm<SettingsFormInputValues, unknown, SettingsFormValues>({
     resolver: zodResolver(settingsFormSchema),
@@ -133,14 +132,19 @@ export function SettingsPage() {
 
           <label className="space-y-1 text-sm font-medium text-[#34434d]">
             Margem padrão
-            <input
-              className={inputClassName}
-              inputMode="decimal"
-              min="0"
-              placeholder="40%"
-              step="0.1"
-              type="number"
-              {...register('defaultProfitMarginPercent', { valueAsNumber: true })}
+            <Controller
+              control={control}
+              name="defaultProfitMarginPercent"
+              render={({ field }) => (
+                <UnitInput
+                  min={0}
+                  onChange={field.onChange}
+                  placeholder="40"
+                  step={0.1}
+                  unit="%"
+                  value={typeof field.value === 'number' ? field.value : undefined}
+                />
+              )}
             />
             {errors.defaultProfitMarginPercent && (
               <span className="block text-xs text-[#b42318]">
@@ -151,14 +155,19 @@ export function SettingsPage() {
 
           <label className="space-y-1 text-sm font-medium text-[#34434d]">
             Taxa de falha padrão
-            <input
-              className={inputClassName}
-              inputMode="decimal"
-              min="0"
-              placeholder="5%"
-              step="0.1"
-              type="number"
-              {...register('defaultFailureRatePercent', { valueAsNumber: true })}
+            <Controller
+              control={control}
+              name="defaultFailureRatePercent"
+              render={({ field }) => (
+                <UnitInput
+                  min={0}
+                  onChange={field.onChange}
+                  placeholder="5"
+                  step={0.1}
+                  unit="%"
+                  value={typeof field.value === 'number' ? field.value : undefined}
+                />
+              )}
             />
             {errors.defaultFailureRatePercent && (
               <span className="block text-xs text-[#b42318]">

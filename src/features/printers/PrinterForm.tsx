@@ -3,7 +3,7 @@ import { Save, X } from 'lucide-react'
 import { useEffect } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 
-import { CurrencyInput } from '@/shared/components'
+import { CurrencyInput, UnitInput } from '@/shared/components'
 import { inputClassName } from '@/shared/styles'
 import type { Printer } from '@/shared/types'
 
@@ -65,6 +65,11 @@ export function PrinterForm({ onCancelEdit, onSubmit, printer }: PrinterFormProp
     reset(emptyFormValues)
   }
 
+  function cancelEdit() {
+    reset(emptyFormValues)
+    onCancelEdit()
+  }
+
   return (
     <form
       className="rounded-md border border-[#d8dee2] bg-white p-5 shadow-sm"
@@ -90,14 +95,19 @@ export function PrinterForm({ onCancelEdit, onSubmit, printer }: PrinterFormProp
 
         <label className="space-y-1 text-sm font-medium text-[#34434d]">
           Potência
-          <input
-            className={inputClassName}
-            inputMode="numeric"
-            min="0"
-            placeholder="350 W"
-            step="1"
-            type="number"
-            {...register('powerWatts', { valueAsNumber: true })}
+          <Controller
+            control={control}
+            name="powerWatts"
+            render={({ field }) => (
+              <UnitInput
+                min={0}
+                onChange={field.onChange}
+                placeholder="350"
+                step={1}
+                unit="W"
+                value={typeof field.value === 'number' ? field.value : undefined}
+              />
+            )}
           />
           {errors.powerWatts && (
             <span className="block text-xs text-[#b42318]">{errors.powerWatts.message}</span>
@@ -125,14 +135,19 @@ export function PrinterForm({ onCancelEdit, onSubmit, printer }: PrinterFormProp
 
         <label className="space-y-1 text-sm font-medium text-[#34434d]">
           Vida útil estimada
-          <input
-            className={inputClassName}
-            inputMode="numeric"
-            min="0"
-            placeholder="5000 h"
-            step="1"
-            type="number"
-            {...register('estimatedLifetimeHours', { valueAsNumber: true })}
+          <Controller
+            control={control}
+            name="estimatedLifetimeHours"
+            render={({ field }) => (
+              <UnitInput
+                min={0}
+                onChange={field.onChange}
+                placeholder="5000"
+                step={1}
+                unit="h"
+                value={typeof field.value === 'number' ? field.value : undefined}
+              />
+            )}
           />
           {errors.estimatedLifetimeHours && (
             <span className="block text-xs text-[#b42318]">
@@ -164,14 +179,19 @@ export function PrinterForm({ onCancelEdit, onSubmit, printer }: PrinterFormProp
 
         <label className="space-y-1 text-sm font-medium text-[#34434d]">
           Taxa de falha padrão
-          <input
-            className={inputClassName}
-            inputMode="decimal"
-            min="0"
-            placeholder="5%"
-            step="0.1"
-            type="number"
-            {...register('defaultFailureRatePercent', { valueAsNumber: true })}
+          <Controller
+            control={control}
+            name="defaultFailureRatePercent"
+            render={({ field }) => (
+              <UnitInput
+                min={0}
+                onChange={field.onChange}
+                placeholder="5"
+                step={0.1}
+                unit="%"
+                value={typeof field.value === 'number' ? field.value : undefined}
+              />
+            )}
           />
           {errors.defaultFailureRatePercent && (
             <span className="block text-xs text-[#b42318]">
@@ -202,7 +222,7 @@ export function PrinterForm({ onCancelEdit, onSubmit, printer }: PrinterFormProp
         {printer !== undefined && (
           <button
             className="inline-flex items-center gap-2 rounded-md border border-[#cfd7dc] bg-white px-4 py-2 text-sm font-medium text-[#34434d]"
-            onClick={onCancelEdit}
+            onClick={cancelEdit}
             type="button"
           >
             <X className="h-4 w-4" aria-hidden="true" />
