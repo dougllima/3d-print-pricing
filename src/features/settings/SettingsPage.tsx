@@ -1,9 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Save, RotateCcw } from 'lucide-react'
+import { RotateCcw, Save } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 
 import { useRepositories } from '@/app/useRepositories'
+import { CurrencyInput } from '@/shared/components'
 import type { GlobalSettings } from '@/shared/types'
 import { defaultSettings } from '@/shared/types'
 
@@ -12,6 +13,9 @@ import {
   type SettingsFormInputValues,
   type SettingsFormValues,
 } from './settingsFormSchema'
+
+const inputClassName =
+  'mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]'
 
 const emptyFormValues: SettingsFormInputValues = {
   electricityCostPerKwh: 0,
@@ -35,6 +39,7 @@ export function SettingsPage() {
   const repositories = useRepositories()
   const [savedMessage, setSavedMessage] = useState<string | undefined>()
   const {
+    control,
     formState: { errors, isSubmitting },
     handleSubmit,
     register,
@@ -105,29 +110,104 @@ export function SettingsPage() {
         onSubmit={handleSubmit(submit)}
       >
         <div className="grid gap-4 md:grid-cols-2">
-          {[
-            ['electricityCostPerKwh', 'Energia por kWh'],
-            ['defaultProfitMarginPercent', 'Margem padrão'],
-            ['defaultFailureRatePercent', 'Taxa de falha padrão'],
-            ['defaultLaborHourlyRate', 'Mão de obra por hora'],
-            ['defaultMinimumPrice', 'Preço mínimo'],
-          ].map(([fieldName, label]) => (
-            <label className="space-y-1 text-sm font-medium text-[#34434d]" key={fieldName}>
-              {label}
-              <input
-                className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
-                min="0"
-                step="0.01"
-                type="number"
-                {...register(fieldName as keyof SettingsFormInputValues, { valueAsNumber: true })}
-              />
-              {errors[fieldName as keyof SettingsFormValues] && (
-                <span className="block text-xs text-[#b42318]">
-                  {errors[fieldName as keyof SettingsFormValues]?.message}
-                </span>
+          <label className="space-y-1 text-sm font-medium text-[#34434d]">
+            Energia por kWh
+            <Controller
+              control={control}
+              name="electricityCostPerKwh"
+              render={({ field }) => (
+                <CurrencyInput
+                  className={inputClassName}
+                  onChange={field.onChange}
+                  placeholder="R$ 0,95"
+                  value={typeof field.value === 'number' ? field.value : undefined}
+                />
               )}
-            </label>
-          ))}
+            />
+            {errors.electricityCostPerKwh && (
+              <span className="block text-xs text-[#b42318]">
+                {errors.electricityCostPerKwh.message}
+              </span>
+            )}
+          </label>
+
+          <label className="space-y-1 text-sm font-medium text-[#34434d]">
+            Margem padrão
+            <input
+              className={inputClassName}
+              inputMode="decimal"
+              min="0"
+              placeholder="40%"
+              step="0.1"
+              type="number"
+              {...register('defaultProfitMarginPercent', { valueAsNumber: true })}
+            />
+            {errors.defaultProfitMarginPercent && (
+              <span className="block text-xs text-[#b42318]">
+                {errors.defaultProfitMarginPercent.message}
+              </span>
+            )}
+          </label>
+
+          <label className="space-y-1 text-sm font-medium text-[#34434d]">
+            Taxa de falha padrão
+            <input
+              className={inputClassName}
+              inputMode="decimal"
+              min="0"
+              placeholder="5%"
+              step="0.1"
+              type="number"
+              {...register('defaultFailureRatePercent', { valueAsNumber: true })}
+            />
+            {errors.defaultFailureRatePercent && (
+              <span className="block text-xs text-[#b42318]">
+                {errors.defaultFailureRatePercent.message}
+              </span>
+            )}
+          </label>
+
+          <label className="space-y-1 text-sm font-medium text-[#34434d]">
+            Mão de obra por hora
+            <Controller
+              control={control}
+              name="defaultLaborHourlyRate"
+              render={({ field }) => (
+                <CurrencyInput
+                  className={inputClassName}
+                  onChange={field.onChange}
+                  placeholder="R$ 35,00"
+                  value={typeof field.value === 'number' ? field.value : undefined}
+                />
+              )}
+            />
+            {errors.defaultLaborHourlyRate && (
+              <span className="block text-xs text-[#b42318]">
+                {errors.defaultLaborHourlyRate.message}
+              </span>
+            )}
+          </label>
+
+          <label className="space-y-1 text-sm font-medium text-[#34434d]">
+            Preço mínimo
+            <Controller
+              control={control}
+              name="defaultMinimumPrice"
+              render={({ field }) => (
+                <CurrencyInput
+                  className={inputClassName}
+                  onChange={field.onChange}
+                  placeholder="R$ 15,00"
+                  value={typeof field.value === 'number' ? field.value : undefined}
+                />
+              )}
+            />
+            {errors.defaultMinimumPrice && (
+              <span className="block text-xs text-[#b42318]">
+                {errors.defaultMinimumPrice.message}
+              </span>
+            )}
+          </label>
         </div>
 
         <div className="mt-5 flex flex-wrap gap-2">

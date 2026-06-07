@@ -26,30 +26,19 @@ const optionalPositiveNumberField = z.preprocess(
   z.number().positive('Informe um valor maior que zero').optional(),
 )
 
-export const materialFormSchema = z
-  .object({
-    name: z.string().trim().min(1, 'Informe o nome do material'),
-    type: materialTypeSchema,
-    brand: optionalTextField,
-    colorName: optionalTextField,
-    colorHex: optionalHexColorField,
-    supplierColorCode: optionalTextField,
-    pricePerKg: z.number().positive('Informe um preço maior que zero'),
-    spoolWeightGrams: optionalPositiveNumberField,
-    remainingWeightGrams: optionalNonNegativeNumberField,
-    lowStockThresholdGrams: optionalNonNegativeNumberField,
-    notes: optionalTextField,
-  })
-  .refine(
-    (values) =>
-      values.spoolWeightGrams === undefined ||
-      values.remainingWeightGrams === undefined ||
-      values.remainingWeightGrams <= values.spoolWeightGrams,
-    {
-      message: 'O peso restante não pode ser maior que o peso do rolo',
-      path: ['remainingWeightGrams'],
-    },
-  )
+export const materialFormSchema = z.object({
+  name: z.string().trim().min(1, 'Informe o nome do material'),
+  type: materialTypeSchema,
+  brand: optionalTextField,
+  colorName: optionalTextField,
+  colorHex: optionalHexColorField,
+  supplierColorCode: optionalTextField,
+  pricePerKg: z.number().positive('Informe um preço maior que zero'),
+  spoolWeightGrams: optionalPositiveNumberField,
+  remainingWeightGrams: optionalNonNegativeNumberField,
+  lowStockThresholdGrams: optionalNonNegativeNumberField,
+  notes: optionalTextField,
+})
 
 export type MaterialFormInputValues = z.input<typeof materialFormSchema>
 export type MaterialFormValues = z.output<typeof materialFormSchema>

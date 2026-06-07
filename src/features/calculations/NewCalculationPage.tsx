@@ -1,9 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { AlertTriangle, Plus, Save, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useForm, useWatch } from 'react-hook-form'
+import { Controller, useForm, useWatch } from 'react-hook-form'
 
 import { useRepositories } from '@/app/useRepositories'
+import { CurrencyInput } from '@/shared/components'
 import type {
   CostCalculation,
   FinishingTask,
@@ -495,19 +496,29 @@ export function NewCalculationPage() {
                 type="number"
                 {...finishingForm.register('hours', { valueAsNumber: true })}
               />
-              <input
-                className="rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
-                min="0"
-                step="0.01"
-                type="number"
-                {...finishingForm.register('hourlyRate', { valueAsNumber: true })}
+              <Controller
+                control={finishingForm.control}
+                name="hourlyRate"
+                render={({ field }) => (
+                  <CurrencyInput
+                    className="rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
+                    onChange={field.onChange}
+                    placeholder="R$ 35,00/h"
+                    value={typeof field.value === 'number' ? field.value : undefined}
+                  />
+                )}
               />
-              <input
-                className="rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
-                min="0"
-                step="0.01"
-                type="number"
-                {...finishingForm.register('materialCost', { valueAsNumber: true })}
+              <Controller
+                control={finishingForm.control}
+                name="materialCost"
+                render={({ field }) => (
+                  <CurrencyInput
+                    className="rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
+                    onChange={field.onChange}
+                    placeholder="R$ 5,00"
+                    value={typeof field.value === 'number' ? field.value : undefined}
+                  />
+                )}
               />
             </div>
             <button

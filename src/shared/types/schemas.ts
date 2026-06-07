@@ -29,16 +29,7 @@ export const materialSchema = z.object({
   isActive: z.boolean(),
   createdAt: dateTimeSchema,
   updatedAt: dateTimeSchema,
-}).strict().refine(
-  (material) =>
-    material.spoolWeightGrams === undefined ||
-    material.remainingWeightGrams === undefined ||
-    material.remainingWeightGrams <= material.spoolWeightGrams,
-  {
-    message: 'remainingWeightGrams must not be greater than spoolWeightGrams',
-    path: ['remainingWeightGrams'],
-  },
-)
+}).strict()
 
 export const printerSchema = z.object({
   id: requiredTextSchema,

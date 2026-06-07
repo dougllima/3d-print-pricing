@@ -1,8 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Save, X } from 'lucide-react'
 import { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 
+import { CurrencyInput } from '@/shared/components'
 import type { Printer } from '@/shared/types'
 
 import {
@@ -17,6 +18,9 @@ type PrinterFormProps = {
   printer?: Printer
 }
 
+const inputClassName =
+  'mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]'
+
 const emptyFormValues: PrinterFormInputValues = {
   name: '',
   model: undefined,
@@ -30,6 +34,7 @@ const emptyFormValues: PrinterFormInputValues = {
 
 export function PrinterForm({ onCancelEdit, onSubmit, printer }: PrinterFormProps) {
   const {
+    control,
     formState: { errors, isSubmitting },
     handleSubmit,
     register,
@@ -74,10 +79,7 @@ export function PrinterForm({ onCancelEdit, onSubmit, printer }: PrinterFormProp
       <div className="mt-5 grid gap-4 md:grid-cols-2">
         <label className="space-y-1 text-sm font-medium text-[#34434d]">
           Nome
-          <input
-            className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
-            {...register('name')}
-          />
+          <input className={inputClassName} placeholder="Bambu Lab A1" {...register('name')} />
           {errors.name && (
             <span className="block text-xs text-[#b42318]">{errors.name.message}</span>
           )}
@@ -85,17 +87,16 @@ export function PrinterForm({ onCancelEdit, onSubmit, printer }: PrinterFormProp
 
         <label className="space-y-1 text-sm font-medium text-[#34434d]">
           Modelo
-          <input
-            className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
-            {...register('model')}
-          />
+          <input className={inputClassName} placeholder="A1, Ender 3, K1..." {...register('model')} />
         </label>
 
         <label className="space-y-1 text-sm font-medium text-[#34434d]">
-          Potência em watts
+          Potência
           <input
-            className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
+            className={inputClassName}
+            inputMode="numeric"
             min="0"
+            placeholder="350 W"
             step="1"
             type="number"
             {...register('powerWatts', { valueAsNumber: true })}
@@ -107,12 +108,17 @@ export function PrinterForm({ onCancelEdit, onSubmit, printer }: PrinterFormProp
 
         <label className="space-y-1 text-sm font-medium text-[#34434d]">
           Valor de compra
-          <input
-            className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
-            min="0"
-            step="0.01"
-            type="number"
-            {...register('purchasePrice', { valueAsNumber: true })}
+          <Controller
+            control={control}
+            name="purchasePrice"
+            render={({ field }) => (
+              <CurrencyInput
+                className={inputClassName}
+                onChange={field.onChange}
+                placeholder="R$ 2.000,00"
+                value={typeof field.value === 'number' ? field.value : undefined}
+              />
+            )}
           />
           {errors.purchasePrice && (
             <span className="block text-xs text-[#b42318]">{errors.purchasePrice.message}</span>
@@ -120,10 +126,12 @@ export function PrinterForm({ onCancelEdit, onSubmit, printer }: PrinterFormProp
         </label>
 
         <label className="space-y-1 text-sm font-medium text-[#34434d]">
-          Vida útil estimada em horas
+          Vida útil estimada
           <input
-            className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
+            className={inputClassName}
+            inputMode="numeric"
             min="0"
+            placeholder="5000 h"
             step="1"
             type="number"
             {...register('estimatedLifetimeHours', { valueAsNumber: true })}
@@ -137,12 +145,17 @@ export function PrinterForm({ onCancelEdit, onSubmit, printer }: PrinterFormProp
 
         <label className="space-y-1 text-sm font-medium text-[#34434d]">
           Manutenção por hora
-          <input
-            className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
-            min="0"
-            step="0.01"
-            type="number"
-            {...register('maintenanceCostPerHour', { valueAsNumber: true })}
+          <Controller
+            control={control}
+            name="maintenanceCostPerHour"
+            render={({ field }) => (
+              <CurrencyInput
+                className={inputClassName}
+                onChange={field.onChange}
+                placeholder="R$ 0,50"
+                value={typeof field.value === 'number' ? field.value : undefined}
+              />
+            )}
           />
           {errors.maintenanceCostPerHour && (
             <span className="block text-xs text-[#b42318]">
@@ -154,8 +167,10 @@ export function PrinterForm({ onCancelEdit, onSubmit, printer }: PrinterFormProp
         <label className="space-y-1 text-sm font-medium text-[#34434d]">
           Taxa de falha padrão
           <input
-            className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
+            className={inputClassName}
+            inputMode="decimal"
             min="0"
+            placeholder="5%"
             step="0.1"
             type="number"
             {...register('defaultFailureRatePercent', { valueAsNumber: true })}
@@ -171,6 +186,7 @@ export function PrinterForm({ onCancelEdit, onSubmit, printer }: PrinterFormProp
           Observações
           <textarea
             className="mt-1 min-h-24 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
+            placeholder="Manutenções previstas, upgrades, limitações..."
             {...register('notes')}
           />
         </label>

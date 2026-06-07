@@ -17,6 +17,9 @@ type ProductFormProps = {
   product?: Product
 }
 
+const inputClassName =
+  'mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]'
+
 const emptyFormValues: ProductFormInputValues = {
   name: '',
   description: undefined,
@@ -66,10 +69,7 @@ export function ProductForm({ onCancelEdit, onSubmit, product }: ProductFormProp
       <div className="mt-5 grid gap-4 md:grid-cols-2">
         <label className="space-y-1 text-sm font-medium text-[#34434d]">
           Nome
-          <input
-            className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
-            {...register('name')}
-          />
+          <input className={inputClassName} placeholder="Porta joias" {...register('name')} />
           {errors.name && (
             <span className="block text-xs text-[#b42318]">{errors.name.message}</span>
           )}
@@ -77,16 +77,14 @@ export function ProductForm({ onCancelEdit, onSubmit, product }: ProductFormProp
 
         <label className="space-y-1 text-sm font-medium text-[#34434d]">
           Categoria
-          <input
-            className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
-            {...register('category')}
-          />
+          <input className={inputClassName} placeholder="Organização" {...register('category')} />
         </label>
 
         <label className="space-y-1 text-sm font-medium text-[#34434d] md:col-span-2">
           Descrição
           <textarea
             className="mt-1 min-h-20 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
+            placeholder="Produto de catálogo, sem dados de impressão."
             {...register('description')}
           />
         </label>
@@ -95,6 +93,7 @@ export function ProductForm({ onCancelEdit, onSubmit, product }: ProductFormProp
           Observações
           <textarea
             className="mt-1 min-h-20 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
+            placeholder="Variações, acabamento esperado, detalhes comerciais..."
             {...register('notes')}
           />
         </label>

@@ -1,8 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Save, X } from 'lucide-react'
-import { useEffect } from 'react'
-import { useForm, useWatch } from 'react-hook-form'
+import { useEffect, useMemo } from 'react'
+import { Controller, useForm, useWatch } from 'react-hook-form'
 
+import { CurrencyInput } from '@/shared/components'
 import { materialTypes, type Material } from '@/shared/types'
 
 import {
@@ -16,6 +17,9 @@ type MaterialFormProps = {
   onCancelEdit: () => void
   onSubmit: (values: MaterialFormValues) => Promise<void>
 }
+
+const inputClassName =
+  'mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]'
 
 const emptyFormValues: MaterialFormInputValues = {
   name: '',
@@ -31,20 +35,42 @@ const emptyFormValues: MaterialFormInputValues = {
   notes: undefined,
 }
 
+const spoolCountFormatter = new Intl.NumberFormat('pt-BR', {
+  maximumFractionDigits: 2,
+  minimumFractionDigits: 0,
+})
+
 export function MaterialForm({ material, onCancelEdit, onSubmit }: MaterialFormProps) {
   const {
+    control,
     formState: { errors, isSubmitting },
     handleSubmit,
     register,
     reset,
-    control,
   } = useForm<MaterialFormInputValues, unknown, MaterialFormValues>({
     resolver: zodResolver(materialFormSchema),
     defaultValues: emptyFormValues,
   })
 
   const colorHex = useWatch({ control, name: 'colorHex' })
+  const watchedSpoolWeightGrams = useWatch({ control, name: 'spoolWeightGrams' })
+  const watchedRemainingWeightGrams = useWatch({ control, name: 'remainingWeightGrams' })
+  const spoolWeightGrams =
+    typeof watchedSpoolWeightGrams === 'number' ? watchedSpoolWeightGrams : undefined
+  const remainingWeightGrams =
+    typeof watchedRemainingWeightGrams === 'number' ? watchedRemainingWeightGrams : undefined
   const previewColor = typeof colorHex === 'string' && colorHex !== '' ? colorHex : '#ffffff'
+  const spoolEstimate = useMemo(() => {
+    if (
+      spoolWeightGrams === undefined ||
+      remainingWeightGrams === undefined ||
+      spoolWeightGrams <= 0
+    ) {
+      return undefined
+    }
+
+    return remainingWeightGrams / spoolWeightGrams
+  }, [remainingWeightGrams, spoolWeightGrams])
 
   useEffect(() => {
     if (material === undefined) {
@@ -86,10 +112,7 @@ export function MaterialForm({ material, onCancelEdit, onSubmit }: MaterialFormP
       <div className="mt-5 grid gap-4 md:grid-cols-2">
         <label className="space-y-1 text-sm font-medium text-[#34434d]">
           Nome
-          <input
-            className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
-            {...register('name')}
-          />
+          <input className={inputClassName} placeholder="PLA Preto Fosco" {...register('name')} />
           {errors.name && (
             <span className="block text-xs text-[#b42318]">{errors.name.message}</span>
           )}
@@ -97,10 +120,7 @@ export function MaterialForm({ material, onCancelEdit, onSubmit }: MaterialFormP
 
         <label className="space-y-1 text-sm font-medium text-[#34434d]">
           Tipo
-          <select
-            className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
-            {...register('type')}
-          >
+          <select className={inputClassName} {...register('type')}>
             {materialTypes.map((type) => (
               <option key={type} value={type}>
                 {type}
@@ -111,20 +131,22 @@ export function MaterialForm({ material, onCancelEdit, onSubmit }: MaterialFormP
 
         <label className="space-y-1 text-sm font-medium text-[#34434d]">
           Marca
-          <input
-            className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
-            {...register('brand')}
-          />
+          <input className={inputClassName} placeholder="3D Fila" {...register('brand')} />
         </label>
 
         <label className="space-y-1 text-sm font-medium text-[#34434d]">
           Preço por kg
-          <input
-            className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
-            min="0"
-            step="0.01"
-            type="number"
-            {...register('pricePerKg', { valueAsNumber: true })}
+          <Controller
+            control={control}
+            name="pricePerKg"
+            render={({ field }) => (
+              <CurrencyInput
+                className={inputClassName}
+                onChange={field.onChange}
+                placeholder="R$ 100,00"
+                value={typeof field.value === 'number' ? field.value : undefined}
+              />
+            )}
           />
           {errors.pricePerKg && (
             <span className="block text-xs text-[#b42318]">{errors.pricePerKg.message}</span>
@@ -133,10 +155,7 @@ export function MaterialForm({ material, onCancelEdit, onSubmit }: MaterialFormP
 
         <label className="space-y-1 text-sm font-medium text-[#34434d]">
           Nome da cor
-          <input
-            className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
-            {...register('colorName')}
-          />
+          <input className={inputClassName} placeholder="Preto" {...register('colorName')} />
         </label>
 
         <label className="space-y-1 text-sm font-medium text-[#34434d]">
@@ -160,17 +179,16 @@ export function MaterialForm({ material, onCancelEdit, onSubmit }: MaterialFormP
 
         <label className="space-y-1 text-sm font-medium text-[#34434d]">
           Código do fornecedor
-          <input
-            className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
-            {...register('supplierColorCode')}
-          />
+          <input className={inputClassName} placeholder="SKU ou código da cor" {...register('supplierColorCode')} />
         </label>
 
         <label className="space-y-1 text-sm font-medium text-[#34434d]">
-          Peso do rolo (g)
+          Peso por rolo
           <input
-            className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
+            className={inputClassName}
+            inputMode="decimal"
             min="0"
+            placeholder="1000 g"
             step="0.01"
             type="number"
             {...register('spoolWeightGrams', { valueAsNumber: true })}
@@ -183,14 +201,21 @@ export function MaterialForm({ material, onCancelEdit, onSubmit }: MaterialFormP
         </label>
 
         <label className="space-y-1 text-sm font-medium text-[#34434d]">
-          Peso restante (g)
+          Filamento restante
           <input
-            className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
+            className={inputClassName}
+            inputMode="decimal"
             min="0"
+            placeholder="1500 g"
             step="0.01"
             type="number"
             {...register('remainingWeightGrams', { valueAsNumber: true })}
           />
+          {spoolEstimate !== undefined && (
+            <span className="block text-xs text-[#52616b]">
+              Equivale a {spoolCountFormatter.format(spoolEstimate)} rolo(s) desse material.
+            </span>
+          )}
           {errors.remainingWeightGrams && (
             <span className="block text-xs text-[#b42318]">
               {errors.remainingWeightGrams.message}
@@ -199,10 +224,12 @@ export function MaterialForm({ material, onCancelEdit, onSubmit }: MaterialFormP
         </label>
 
         <label className="space-y-1 text-sm font-medium text-[#34434d]">
-          Alerta de estoque baixo (g)
+          Alerta de estoque baixo
           <input
-            className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
+            className={inputClassName}
+            inputMode="decimal"
             min="0"
+            placeholder="150 g"
             step="0.01"
             type="number"
             {...register('lowStockThresholdGrams', { valueAsNumber: true })}
@@ -218,6 +245,7 @@ export function MaterialForm({ material, onCancelEdit, onSubmit }: MaterialFormP
           Observações
           <textarea
             className="mt-1 min-h-24 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
+            placeholder="Lote, fornecedor, comportamento de impressão..."
             {...register('notes')}
           />
         </label>

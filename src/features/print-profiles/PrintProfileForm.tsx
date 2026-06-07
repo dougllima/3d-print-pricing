@@ -152,7 +152,17 @@ function RunMaterialsFields({
                 {label}
                 <input
                   className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
+                  inputMode="decimal"
                   min="0"
+                  placeholder={
+                    fieldName === 'modelWeightGrams'
+                      ? '42 g'
+                      : fieldName === 'supportWeightGrams'
+                        ? '5 g'
+                        : fieldName === 'purgeWeightGrams'
+                          ? '2 g'
+                          : '1 g'
+                  }
                   step="0.01"
                   type="number"
                   {...register(
@@ -245,6 +255,7 @@ export function PrintProfileForm({
           Nome
           <input
             className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
+            placeholder="Porta joias - base preta e tampa dourada"
             {...register('name')}
           />
           {errors.name && (
@@ -289,6 +300,7 @@ export function PrintProfileForm({
           Perfil do slicer
           <input
             className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
+            placeholder="0.2mm quality"
             {...register('slicerProfileName')}
           />
         </label>
@@ -297,7 +309,9 @@ export function PrintProfileForm({
           Altura de camada (mm)
           <input
             className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
+            inputMode="decimal"
             min="0"
+            placeholder="0,20 mm"
             step="0.01"
             type="number"
             {...register('layerHeightMm', { valueAsNumber: true })}
@@ -308,7 +322,9 @@ export function PrintProfileForm({
           Bico (mm)
           <input
             className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
+            inputMode="decimal"
             min="0"
+            placeholder="0,40 mm"
             step="0.01"
             type="number"
             {...register('nozzleDiameterMm', { valueAsNumber: true })}
@@ -319,7 +335,9 @@ export function PrintProfileForm({
           Infill (%)
           <input
             className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
+            inputMode="decimal"
             min="0"
+            placeholder="15%"
             step="0.1"
             type="number"
             {...register('infillPercent', { valueAsNumber: true })}
@@ -330,7 +348,9 @@ export function PrintProfileForm({
           Paredes
           <input
             className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
+            inputMode="numeric"
             min="0"
+            placeholder="3"
             step="1"
             type="number"
             {...register('wallLoops', { valueAsNumber: true })}
@@ -358,7 +378,9 @@ export function PrintProfileForm({
                 Quantidade no plate
                 <input
                   className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
+                  inputMode="numeric"
                   min="1"
+                  placeholder="10 unidades"
                   step="1"
                   type="number"
                   {...register(`printRuns.${runIndex}.quantity`, { valueAsNumber: true })}
@@ -369,7 +391,9 @@ export function PrintProfileForm({
                 Horas
                 <input
                   className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
+                  inputMode="numeric"
                   min="0"
+                  placeholder="3 h"
                   step="1"
                   type="number"
                   {...register(`printRuns.${runIndex}.printTimeHours`, { valueAsNumber: true })}
@@ -380,8 +404,10 @@ export function PrintProfileForm({
                 Minutos
                 <input
                   className="mt-1 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
+                  inputMode="numeric"
                   max="59"
                   min="0"
+                  placeholder="45 min"
                   step="1"
                   type="number"
                   {...register(`printRuns.${runIndex}.printTimeMinutesPart`, {
@@ -420,6 +446,7 @@ export function PrintProfileForm({
         Observações
         <textarea
           className="mt-1 min-h-20 w-full rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]"
+          placeholder="Configurações do slicer, plates, cores e observações de produção..."
           {...register('notes')}
         />
       </label>

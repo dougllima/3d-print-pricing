@@ -46,9 +46,9 @@ describe('domain schemas', () => {
       materialSchema.safeParse({
         ...baseMaterial,
         spoolWeightGrams: 1000,
-        remainingWeightGrams: 1200,
+        remainingWeightGrams: 1500,
       }).success,
-    ).toBe(false)
+    ).toBe(true)
   })
 
   it('keeps product data separate from print profile manufacturing data', () => {

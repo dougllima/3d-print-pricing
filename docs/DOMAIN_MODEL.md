@@ -34,7 +34,7 @@ Rules:
 - `spoolWeightGrams` is optional and represents the nominal filament amount in the spool.
 - `remainingWeightGrams` is optional and represents the currently available filament amount.
 - `lowStockThresholdGrams` is optional and controls low-stock alerts.
-- If `spoolWeightGrams` and `remainingWeightGrams` are both provided, `remainingWeightGrams` must not be greater than `spoolWeightGrams`.
+- `remainingWeightGrams` may be greater than `spoolWeightGrams`; in that case it represents more than one spool of the same material.
 - Stock fields are measured in grams.
 - Material stock tracking is lightweight in v1.1 and does not include stock movement history.
 - Materials should be archived/deactivated instead of permanently deleted when possible.
