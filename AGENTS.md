@@ -55,7 +55,11 @@ Use:
 - Products may have multiple categories.
 - Product category suggestions should be derived from existing products.
 - A PrintProfile is a specific way to manufacture a product and may contain multiple quantity-specific print runs.
-- A PrintProfile may use one or more materials.
+- A PrintProfileRun represents a quantity variation.
+- Multi-plate prints should be represented as multiple plates inside the same PrintProfileRun.
+- A PrintProfilePlate represents one slicer plate that complements its quantity variation.
+- A PrintProfile may use one or more material slots per plate.
+- PrintProfile material slots may leave `materialId` empty when the final filament/color will be chosen later.
 - PrintProfile may store a slicer profile name, but detailed slicer configuration fields should not be stored until they are used by the product.
 - Saved print run weights and time come from slicer totals and must not be multiplied by quantity again.
 - A CostCalculation is a snapshot and must not change when material or printer data changes later.

@@ -4,16 +4,17 @@ import { optionalTextField, requiredTextField } from '@/shared/validation'
 
 export const printProfileMaterialUsageFormSchema = z.object({
   id: z.string().trim().min(1),
-  materialId: requiredTextField,
+  materialId: optionalTextField,
+  label: optionalTextField,
   modelWeightGrams: z.number().nonnegative('Informe um peso maior ou igual a zero'),
   supportWeightGrams: z.number().nonnegative('Informe um peso maior ou igual a zero'),
   purgeWeightGrams: z.number().nonnegative('Informe um peso maior ou igual a zero'),
   otherWasteGrams: z.number().nonnegative('Informe um peso maior ou igual a zero'),
 })
 
-export const printProfileRunFormSchema = z.object({
+export const printProfilePlateFormSchema = z.object({
   id: z.string().trim().min(1),
-  quantity: z.number().int().positive('Informe uma quantidade maior que zero'),
+  name: z.string().trim().min(1, 'Informe o nome do plate'),
   printTimeHours: z.number().int().nonnegative('Informe horas maior ou igual a zero'),
   printTimeMinutesPart: z
     .number()
@@ -21,6 +22,12 @@ export const printProfileRunFormSchema = z.object({
     .min(0, 'Informe minutos entre 0 e 59')
     .max(59, 'Informe minutos entre 0 e 59'),
   materials: z.array(printProfileMaterialUsageFormSchema).min(1, 'Adicione ao menos um material'),
+})
+
+export const printProfileRunFormSchema = z.object({
+  id: z.string().trim().min(1),
+  quantity: z.number().int().positive('Informe uma quantidade maior que zero'),
+  plates: z.array(printProfilePlateFormSchema).min(1, 'Adicione ao menos um plate'),
 })
 
 export const printProfileFormSchema = z.object({

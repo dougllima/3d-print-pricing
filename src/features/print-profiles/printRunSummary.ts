@@ -5,18 +5,22 @@ import type {
   Printer,
   PrintProfile,
   PrintProfileMaterialUsage,
+  PrintProfilePlate,
 } from '@/shared/types'
 import { hasEnoughMaterialStock } from '@/shared/utils'
 
 export type MaterialUsageSummary = PrintProfileMaterialUsage & {
   material?: Material
+  plate: PrintProfilePlate
   totalWeightGrams: number
 }
 
 export type PrintRunSummary = {
   materialUsages: MaterialUsageSummary[]
+  missingMaterialUsages: MaterialUsageSummary[]
   result?: CostCalculationResult
   stockWarnings: MaterialUsageSummary[]
+  totalPrintTimeMinutes: number
   totalWeightGrams: number
 }
 
@@ -53,11 +57,14 @@ function createMaterialUsageSummaries(
   materials: Material[],
   printRun: PrintProfile['printRuns'][number],
 ) {
-  return printRun.materials.map((materialUsage) => ({
-    ...materialUsage,
-    material: findById(materials, materialUsage.materialId),
-    totalWeightGrams: getMaterialUsageTotalWeight(materialUsage),
-  }))
+  return printRun.plates.flatMap((plate) =>
+    plate.materials.map((materialUsage) => ({
+      ...materialUsage,
+      material: findById(materials, materialUsage.materialId),
+      plate,
+      totalWeightGrams: getMaterialUsageTotalWeight(materialUsage),
+    })),
+  )
 }
 
 export function createPrintRunSummary(input: {
@@ -67,8 +74,15 @@ export function createPrintRunSummary(input: {
   settings: GlobalSettings
 }): PrintRunSummary {
   const materialUsages = createMaterialUsageSummaries(input.materials, input.printRun)
+  const missingMaterialUsages = materialUsages.filter(
+    (materialUsage) => materialUsage.material === undefined,
+  )
   const hasMissingMaterial = materialUsages.some(
     (materialUsage) => materialUsage.material === undefined,
+  )
+  const totalPrintTimeMinutes = input.printRun.plates.reduce(
+    (totalMinutes, plate) => totalMinutes + plate.printTimeMinutes,
+    0,
   )
   const totalWeightGrams = materialUsages.reduce(
     (totalWeight, materialUsage) => totalWeight + materialUsage.totalWeightGrams,
@@ -90,7 +104,7 @@ export function createPrintRunSummary(input: {
           printerPurchasePrice: input.printer.purchasePrice,
           printerEstimatedLifetimeHours: input.printer.estimatedLifetimeHours,
           printerMaintenanceCostPerHour: input.printer.maintenanceCostPerHour,
-          printTimeMinutes: input.printRun.printTimeMinutes,
+          printTimeMinutes: totalPrintTimeMinutes,
           modelWeightGrams: 0,
           quantity: input.printRun.quantity,
           finishingTasks: [],
@@ -106,8 +120,10 @@ export function createPrintRunSummary(input: {
 
   return {
     materialUsages,
+    missingMaterialUsages,
     result,
     stockWarnings,
+    totalPrintTimeMinutes,
     totalWeightGrams,
   }
 }

@@ -4,8 +4,13 @@ import { useEffect, useId } from 'react'
 import { Controller, useFieldArray, useForm, type Control, type UseFormRegister } from 'react-hook-form'
 
 import { UnitInput } from '@/shared/components'
-import { inputClassName, primaryButtonClassName, secondaryButtonClassName, textareaClassName } from '@/shared/styles'
-import type { Material, Printer, PrintProfile, Product } from '@/shared/types'
+import {
+  inputClassName,
+  primaryButtonClassName,
+  secondaryButtonClassName,
+  textareaClassName,
+} from '@/shared/styles'
+import type { Material, PrintProfile, Product, Printer } from '@/shared/types'
 import { createEntityId } from '@/shared/utils'
 
 import {
@@ -24,11 +29,15 @@ type PrintProfileFormProps = {
   slicerProfileOptions: string[]
 }
 
-type RunMaterialsFieldsProps = {
+type RunPlatesFieldsProps = {
   control: Control<PrintProfileFormInputValues>
   materials: Material[]
   register: UseFormRegister<PrintProfileFormInputValues>
   runIndex: number
+}
+
+type PlateMaterialsFieldsProps = RunPlatesFieldsProps & {
+  plateIndex: number
 }
 
 type MaterialWeightFieldName =
@@ -42,16 +51,17 @@ const materialWeightFields: Array<{
   label: string
   placeholder: string
 }> = [
-  { fieldName: 'modelWeightGrams', label: 'Peso do modelo (g)', placeholder: '42 g' },
-  { fieldName: 'supportWeightGrams', label: 'Suportes (g)', placeholder: '5 g' },
-  { fieldName: 'purgeWeightGrams', label: 'Purga (g)', placeholder: '2 g' },
-  { fieldName: 'otherWasteGrams', label: 'Outros desperdícios (g)', placeholder: '1 g' },
+  { fieldName: 'modelWeightGrams', label: 'Peso do modelo', placeholder: '42' },
+  { fieldName: 'supportWeightGrams', label: 'Suportes', placeholder: '5' },
+  { fieldName: 'purgeWeightGrams', label: 'Purga', placeholder: '2' },
+  { fieldName: 'otherWasteGrams', label: 'Outros desperdícios', placeholder: '1' },
 ]
 
 function createEmptyMaterialUsage() {
   return {
     id: createEntityId(),
-    materialId: '',
+    materialId: undefined,
+    label: undefined,
     modelWeightGrams: 0,
     supportWeightGrams: 0,
     purgeWeightGrams: 0,
@@ -59,37 +69,21 @@ function createEmptyMaterialUsage() {
   }
 }
 
-function createEmptyRun() {
+function createEmptyPlate(index = 1) {
   return {
     id: createEntityId(),
-    quantity: 1,
+    name: `Plate ${index}`,
     printTimeHours: 0,
     printTimeMinutesPart: 0,
     materials: [createEmptyMaterialUsage()],
   }
 }
 
-function toFormValues(printProfile: PrintProfile): PrintProfileFormInputValues {
+function createEmptyRun() {
   return {
-    productId: printProfile.productId,
-    name: printProfile.name,
-    printerId: printProfile.printerId,
-    slicerProfileName: printProfile.slicerProfileName,
-    printRuns: printProfile.printRuns.map((printRun) => ({
-      id: printRun.id,
-      quantity: printRun.quantity,
-      printTimeHours: Math.floor(printRun.printTimeMinutes / 60),
-      printTimeMinutesPart: printRun.printTimeMinutes % 60,
-      materials: printRun.materials.map((materialUsage) => ({
-        id: materialUsage.id,
-        materialId: materialUsage.materialId,
-        modelWeightGrams: materialUsage.modelWeightGrams,
-        supportWeightGrams: materialUsage.supportWeightGrams,
-        purgeWeightGrams: materialUsage.purgeWeightGrams,
-        otherWasteGrams: materialUsage.otherWasteGrams,
-      })),
-    })),
-    notes: printProfile.notes,
+    id: createEntityId(),
+    quantity: 1,
+    plates: [createEmptyPlate()],
   }
 }
 
@@ -102,19 +96,49 @@ const emptyFormValues: PrintProfileFormInputValues = {
   notes: undefined,
 }
 
-function RunMaterialsFields({
+function toFormValues(printProfile: PrintProfile): PrintProfileFormInputValues {
+  return {
+    productId: printProfile.productId,
+    name: printProfile.name,
+    printerId: printProfile.printerId,
+    slicerProfileName: printProfile.slicerProfileName,
+    printRuns: printProfile.printRuns.map((printRun) => ({
+      id: printRun.id,
+      quantity: printRun.quantity,
+      plates: printRun.plates.map((plate) => ({
+        id: plate.id,
+        name: plate.name,
+        printTimeHours: Math.floor(plate.printTimeMinutes / 60),
+        printTimeMinutesPart: plate.printTimeMinutes % 60,
+        materials: plate.materials.map((materialUsage) => ({
+          id: materialUsage.id,
+          materialId: materialUsage.materialId,
+          label: materialUsage.label,
+          modelWeightGrams: materialUsage.modelWeightGrams,
+          supportWeightGrams: materialUsage.supportWeightGrams,
+          purgeWeightGrams: materialUsage.purgeWeightGrams,
+          otherWasteGrams: materialUsage.otherWasteGrams,
+        })),
+      })),
+    })),
+    notes: printProfile.notes,
+  }
+}
+
+function PlateMaterialsFields({
   control,
   materials,
+  plateIndex,
   register,
   runIndex,
-}: RunMaterialsFieldsProps) {
+}: PlateMaterialsFieldsProps) {
   const {
     fields: materialFields,
     append,
     remove,
   } = useFieldArray({
     control,
-    name: `printRuns.${runIndex}.materials`,
+    name: `printRuns.${runIndex}.plates.${plateIndex}.materials`,
   })
 
   return (
@@ -122,13 +146,26 @@ function RunMaterialsFields({
       {materialFields.map((materialField, materialIndex) => (
         <div className="rounded-md border border-[#edf1f3] bg-white p-3" key={materialField.id}>
           <div className="grid gap-3 md:grid-cols-2">
-            <label className="space-y-1 text-sm font-medium text-[#34434d] md:col-span-2">
+            <label className="space-y-1 text-sm font-medium text-[#34434d]">
+              Slot/cor
+              <input
+                className={inputClassName}
+                placeholder="Cor principal, tampa, detalhe..."
+                {...register(
+                  `printRuns.${runIndex}.plates.${plateIndex}.materials.${materialIndex}.label`,
+                )}
+              />
+            </label>
+
+            <label className="space-y-1 text-sm font-medium text-[#34434d]">
               Material
               <select
                 className={inputClassName}
-                {...register(`printRuns.${runIndex}.materials.${materialIndex}.materialId`)}
+                {...register(
+                  `printRuns.${runIndex}.plates.${plateIndex}.materials.${materialIndex}.materialId`,
+                )}
               >
-                <option value="">Selecione</option>
+                <option value="">Escolher depois</option>
                 {materials.map((material) => (
                   <option key={material.id} value={material.id}>
                     {material.name}
@@ -142,13 +179,12 @@ function RunMaterialsFields({
                 {label}
                 <Controller
                   control={control}
-                  name={`printRuns.${runIndex}.materials.${materialIndex}.${fieldName}`}
+                  name={`printRuns.${runIndex}.plates.${plateIndex}.materials.${materialIndex}.${fieldName}`}
                   render={({ field }) => (
                     <UnitInput
-                      max={59}
                       min={0}
                       onChange={field.onChange}
-                      placeholder={placeholder.replace(' g', '')}
+                      placeholder={placeholder}
                       step={0.01}
                       unit="g"
                       value={typeof field.value === 'number' ? field.value : undefined}
@@ -180,6 +216,104 @@ function RunMaterialsFields({
         <Plus className="h-4 w-4" aria-hidden="true" />
         Adicionar material
       </button>
+    </div>
+  )
+}
+
+function RunPlatesFields({ control, materials, register, runIndex }: RunPlatesFieldsProps) {
+  const {
+    fields: plateFields,
+    append,
+    remove,
+  } = useFieldArray({
+    control,
+    name: `printRuns.${runIndex}.plates`,
+  })
+
+  return (
+    <div className="mt-4 space-y-3">
+      <div className="flex items-center justify-between gap-3">
+        <h4 className="text-sm font-semibold uppercase text-[#697782]">Plates</h4>
+        <button
+          className="inline-flex items-center gap-2 rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm font-medium text-[#34434d]"
+          onClick={() => append(createEmptyPlate(plateFields.length + 1))}
+          type="button"
+        >
+          <Plus className="h-4 w-4" aria-hidden="true" />
+          Adicionar plate
+        </button>
+      </div>
+
+      {plateFields.map((plateField, plateIndex) => (
+        <section className="rounded-md border border-[#d8dee2] bg-white p-4" key={plateField.id}>
+          <div className="grid gap-4 md:grid-cols-3">
+            <label className="space-y-1 text-sm font-medium text-[#34434d]">
+              Nome do plate
+              <input
+                className={inputClassName}
+                placeholder="Base, tampa, divisórias..."
+                {...register(`printRuns.${runIndex}.plates.${plateIndex}.name`)}
+              />
+            </label>
+
+            <label className="space-y-1 text-sm font-medium text-[#34434d]">
+              Horas
+              <Controller
+                control={control}
+                name={`printRuns.${runIndex}.plates.${plateIndex}.printTimeHours`}
+                render={({ field }) => (
+                  <UnitInput
+                    min={0}
+                    onChange={field.onChange}
+                    placeholder="3"
+                    step={1}
+                    unit="h"
+                    value={typeof field.value === 'number' ? field.value : undefined}
+                  />
+                )}
+              />
+            </label>
+
+            <label className="space-y-1 text-sm font-medium text-[#34434d]">
+              Minutos
+              <Controller
+                control={control}
+                name={`printRuns.${runIndex}.plates.${plateIndex}.printTimeMinutesPart`}
+                render={({ field }) => (
+                  <UnitInput
+                    max={59}
+                    min={0}
+                    onChange={field.onChange}
+                    placeholder="45"
+                    step={1}
+                    unit="min"
+                    value={typeof field.value === 'number' ? field.value : undefined}
+                  />
+                )}
+              />
+            </label>
+          </div>
+
+          <PlateMaterialsFields
+            control={control}
+            materials={materials}
+            plateIndex={plateIndex}
+            register={register}
+            runIndex={runIndex}
+          />
+
+          {plateFields.length > 1 && (
+            <button
+              className="mt-4 inline-flex items-center gap-2 rounded-md border border-[#f0b4ad] bg-white px-3 py-2 text-sm font-medium text-[#b42318]"
+              onClick={() => remove(plateIndex)}
+              type="button"
+            >
+              <Trash2 className="h-4 w-4" aria-hidden="true" />
+              Remover plate
+            </button>
+          )}
+        </section>
+      ))}
     </div>
   )
 }
@@ -315,7 +449,7 @@ export function PrintProfileForm({
           <section className="rounded-md border border-[#d8dee2] bg-[#fbfcfd] p-4" key={runField.id}>
             <div className="grid gap-4 md:grid-cols-3">
               <label className="space-y-1 text-sm font-medium text-[#34434d]">
-                Quantidade no plate
+                Quantidade da variação
                 <Controller
                   control={control}
                   name={`printRuns.${runIndex}.quantity`}
@@ -331,45 +465,9 @@ export function PrintProfileForm({
                   )}
                 />
               </label>
-
-              <label className="space-y-1 text-sm font-medium text-[#34434d]">
-                Horas
-                <Controller
-                  control={control}
-                  name={`printRuns.${runIndex}.printTimeHours`}
-                  render={({ field }) => (
-                    <UnitInput
-                      min={0}
-                      onChange={field.onChange}
-                      placeholder="3"
-                      step={1}
-                      unit="h"
-                      value={typeof field.value === 'number' ? field.value : undefined}
-                    />
-                  )}
-                />
-              </label>
-
-              <label className="space-y-1 text-sm font-medium text-[#34434d]">
-                Minutos
-                <Controller
-                  control={control}
-                  name={`printRuns.${runIndex}.printTimeMinutesPart`}
-                  render={({ field }) => (
-                    <UnitInput
-                      min={0}
-                      onChange={field.onChange}
-                      placeholder="45"
-                      step={1}
-                      unit="min"
-                      value={typeof field.value === 'number' ? field.value : undefined}
-                    />
-                  )}
-                />
-              </label>
             </div>
 
-            <RunMaterialsFields
+            <RunPlatesFields
               control={control}
               materials={materials}
               register={register}

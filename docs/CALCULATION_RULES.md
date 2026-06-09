@@ -234,21 +234,24 @@ Recommended:
 - UI formats BRL currency;
 - tests use approximate comparisons where needed.
 
-## Saved print runs
+## Saved print runs and plates
 
-Saved print runs use slicer totals for a specific quantity.
+Saved print runs use slicer totals for a specific quantity variation.
+
+A print run may contain multiple plates. Plates complement the same quantity variation and must be summed.
 
 For saved PrintProfile calculations:
 
-- use `printTimeMinutes / 60` for time-based costs;
+- use `sum(plate.printTimeMinutes) / 60` for time-based costs;
 - do not multiply print time by quantity;
 - do not multiply material weights by quantity;
-- calculate material cost per material usage and sum the result;
+- calculate material cost per material usage across all plates and sum the result;
 - compare each material usage against that material's remaining stock.
+- if a material usage has no `materialId`, keep the print recipe valid but do not calculate final cost until the material is chosen.
 
 ```txt
 materialCost =
-  sum(materialTotalWeightGrams / 1000 * materialPricePerKg)
+  sum(plateMaterialTotalWeightGrams / 1000 * materialPricePerKg)
 ```
 
 Standalone simulations may still use the legacy per-unit model where quantity multiplies time and weights.

@@ -9,6 +9,7 @@ export {
   type Printer,
   type PrintProfile,
   type PrintProfileMaterialUsage,
+  type PrintProfilePlate,
   type PrintProfileRun,
   type Product,
 } from './domain'
@@ -24,6 +25,7 @@ export {
   materialTypeSchema,
   printerSchema,
   printProfileMaterialUsageSchema,
+  printProfilePlateSchema,
   printProfileRunSchema,
   printProfileSchema,
   productSchema,

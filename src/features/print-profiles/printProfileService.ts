@@ -17,8 +17,12 @@ export function createPrintProfileFromFormValues(input: {
     printRuns: input.values.printRuns.map((printRun) => ({
       id: printRun.id,
       quantity: printRun.quantity,
-      printTimeMinutes: printRun.printTimeHours * 60 + printRun.printTimeMinutesPart,
-      materials: printRun.materials,
+      plates: printRun.plates.map((plate) => ({
+        id: plate.id,
+        name: plate.name,
+        printTimeMinutes: plate.printTimeHours * 60 + plate.printTimeMinutesPart,
+        materials: plate.materials,
+      })),
     })),
     slicerProfileName: input.values.slicerProfileName,
     notes: input.values.notes,

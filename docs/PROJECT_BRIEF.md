@@ -79,7 +79,11 @@ Products may have multiple categories. Category options are derived from categor
 
 A specific way to manufacture a product. In the UI, this should be called "Impressao" or "Impressoes".
 
-A product can have multiple print profiles. Each print profile may contain multiple quantity-specific print runs and each run may use one or more materials.
+A product can have multiple print profiles. Each print profile may contain multiple quantity-specific print runs.
+
+A print run represents one quantity variation. If that variation requires multiple slicer plates, those plates are stored inside the same run and summed for cost/weight/time.
+
+Each plate may use one or more material slots. A slot can leave the actual material empty when the final filament/color will be chosen later.
 
 Print run weight and time values come from slicer totals for that quantity and must not be multiplied by quantity again.
 

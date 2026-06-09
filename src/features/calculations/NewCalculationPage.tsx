@@ -92,6 +92,38 @@ function getPrimaryPrintRun(printProfile: PrintProfile) {
   return printProfile.printRuns[0]
 }
 
+function getPrintRunTotalTimeHours(printRun: PrintProfile['printRuns'][number]) {
+  return (
+    printRun.plates.reduce((totalMinutes, plate) => totalMinutes + plate.printTimeMinutes, 0) / 60
+  )
+}
+
+function getPrintRunMaterialUsages(printRun: PrintProfile['printRuns'][number]) {
+  return printRun.plates.flatMap((plate) => plate.materials)
+}
+
+function getOnlyMaterialId(printRun: PrintProfile['printRuns'][number]) {
+  const materialIds = [
+    ...new Set(
+      getPrintRunMaterialUsages(printRun)
+        .map((materialUsage) => materialUsage.materialId)
+        .filter((materialId): materialId is string => materialId !== undefined),
+    ),
+  ]
+
+  return materialIds.length === 1 ? materialIds[0] : undefined
+}
+
+function sumPrintRunWeight(
+  printRun: PrintProfile['printRuns'][number],
+  fieldName: 'modelWeightGrams' | 'supportWeightGrams' | 'purgeWeightGrams' | 'otherWasteGrams',
+) {
+  return getPrintRunMaterialUsages(printRun).reduce(
+    (totalWeight, materialUsage) => totalWeight + materialUsage[fieldName],
+    0,
+  )
+}
+
 export function NewCalculationPage() {
   const repositories = useRepositories()
   const [finishingTasks, setFinishingTasks] = useState<FinishingTask[]>([])
@@ -190,19 +222,18 @@ export function NewCalculationPage() {
     setValue('productId', printProfile.productId)
     setValue('printerId', printProfile.printerId)
     const printRun = getPrimaryPrintRun(printProfile)
-    const materialUsage = printRun?.materials[0]
 
-    if (printRun === undefined || materialUsage === undefined) {
+    if (printRun === undefined) {
       return
     }
 
-    setValue('materialId', materialUsage.materialId)
+    setValue('materialId', getOnlyMaterialId(printRun) ?? '')
     setValue('quantity', printRun.quantity)
-    setValue('printTimeHours', printRun.printTimeMinutes / 60)
-    setValue('modelWeightGrams', materialUsage.modelWeightGrams)
-    setValue('supportWeightGrams', materialUsage.supportWeightGrams)
-    setValue('purgeWeightGrams', materialUsage.purgeWeightGrams)
-    setValue('otherWasteGrams', materialUsage.otherWasteGrams)
+    setValue('printTimeHours', getPrintRunTotalTimeHours(printRun))
+    setValue('modelWeightGrams', sumPrintRunWeight(printRun, 'modelWeightGrams'))
+    setValue('supportWeightGrams', sumPrintRunWeight(printRun, 'supportWeightGrams'))
+    setValue('purgeWeightGrams', sumPrintRunWeight(printRun, 'purgeWeightGrams'))
+    setValue('otherWasteGrams', sumPrintRunWeight(printRun, 'otherWasteGrams'))
   }, [printProfiles, selectedPrintProfileId, setValue])
 
   useEffect(() => {

@@ -111,18 +111,25 @@ UI name: Impressao / Impressoes.
 ```ts
 export type PrintProfileMaterialUsage = {
   id: string
-  materialId: string
+  materialId?: string
+  label?: string
   modelWeightGrams: number
   supportWeightGrams: number
   purgeWeightGrams: number
   otherWasteGrams: number
 }
 
+export type PrintProfilePlate = {
+  id: string
+  name: string
+  printTimeMinutes: number
+  materials: PrintProfileMaterialUsage[]
+}
+
 export type PrintProfileRun = {
   id: string
   quantity: number
-  printTimeMinutes: number
-  materials: PrintProfileMaterialUsage[]
+  plates: PrintProfilePlate[]
 }
 
 export type PrintProfile = {
@@ -144,11 +151,17 @@ Rules:
 
 - Product remains independent from materials, printer, weights and slicer settings.
 - PrintProfile belongs to one printer and may optionally belong to one product.
-- PrintProfile may use one or more materials.
 - PrintProfile may have one or more quantity-specific print runs.
-- Each print run stores total slicer output for that quantity.
+- A print run represents a quantity variation, such as 1 unit, 5 units or 10 units.
+- A print run may contain one or more plates.
+- A plate represents one slicer plate that complements the selected quantity variation.
+- Multi-plate prints are represented by multiple plates inside the same print run, not by multiple quantities.
+- Each plate stores total slicer output for that plate.
+- PrintProfile may use one or more material slots per plate.
+- `materialId` is optional so the print recipe can be saved before the final filament/color is chosen.
+- `label` can describe the slot, such as "Cor principal", "Tampa" or "Detalhe".
 - Saved print run weights and time must not be multiplied by quantity again.
-- Time is stored as `printTimeMinutes`; UI should collect hours and minutes.
+- Time is stored as `printTimeMinutes` on each plate; UI should collect hours and minutes.
 - `slicerProfileName` is optional and may suggest values from existing print profiles.
 - Detailed slicer configuration fields such as layer height, nozzle, infill and walls are not stored in v1.1.
 - Cost can be shown as generated output inside the Impressoes UI.
@@ -157,7 +170,8 @@ Rules:
 Legacy migration notes:
 
 - Older saved print profiles may contain a single `materialId`, `printTimeHours` and flat weight fields.
-- The schema may normalize those records into one `PrintProfileRun` for compatibility.
+- The schema may normalize those records into one `PrintProfileRun` with one `PrintProfilePlate` for compatibility.
+- Older saved print runs with direct `materials` and `printTimeMinutes` are normalized into a single plate named `Plate 1`.
 - Removed slicer configuration fields should be accepted only for migration and omitted from normalized domain output.
 
 ---

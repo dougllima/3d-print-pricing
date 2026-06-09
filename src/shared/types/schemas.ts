@@ -84,19 +84,45 @@ export const productSchema = legacyProductSchema.transform((product): Product =>
 
 export const printProfileMaterialUsageSchema = z.object({
   id: requiredTextSchema,
-  materialId: requiredTextSchema,
+  materialId: optionalTextSchema,
+  label: optionalTextSchema,
   modelWeightGrams: nonNegativeNumberSchema,
   supportWeightGrams: nonNegativeNumberSchema.default(0),
   purgeWeightGrams: nonNegativeNumberSchema.default(0),
   otherWasteGrams: nonNegativeNumberSchema.default(0),
 }).strict()
 
-export const printProfileRunSchema = z.object({
+export const printProfilePlateSchema = z.object({
   id: requiredTextSchema,
-  quantity: z.number().int().positive(),
+  name: requiredTextSchema,
   printTimeMinutes: z.number().int().nonnegative(),
   materials: z.array(printProfileMaterialUsageSchema).min(1),
 }).strict()
+
+const legacyPrintProfileRunSchema = z.object({
+  id: requiredTextSchema,
+  quantity: z.number().int().positive(),
+  printTimeMinutes: z.number().int().nonnegative().optional(),
+  materials: z.array(printProfileMaterialUsageSchema).optional(),
+  plates: z.array(printProfilePlateSchema).optional(),
+}).strict()
+
+export const printProfileRunSchema = legacyPrintProfileRunSchema.transform((printRun) => ({
+  id: printRun.id,
+  quantity: printRun.quantity,
+  plates:
+    printRun.plates ??
+    (printRun.materials === undefined
+      ? []
+      : [
+          {
+            id: `${printRun.id}-plate-1`,
+            name: 'Plate 1',
+            printTimeMinutes: printRun.printTimeMinutes ?? 0,
+            materials: printRun.materials,
+          },
+        ]),
+}))
 
 const legacyPrintProfileSchema = z.object({
   id: requiredTextSchema,
@@ -185,15 +211,21 @@ export const printProfileSchema = legacyPrintProfileSchema.transform((printProfi
     {
       id: `${printProfile.id}-run-1`,
       quantity: 1,
-      printTimeMinutes: Math.round((printProfile.printTimeHours ?? 0) * 60),
-      materials: [
+      plates: [
         {
-          id: `${printProfile.id}-material-1`,
-          materialId: printProfile.materialId,
-          modelWeightGrams: printProfile.modelWeightGrams ?? 0,
-          supportWeightGrams: printProfile.supportWeightGrams ?? 0,
-          purgeWeightGrams: printProfile.purgeWeightGrams ?? 0,
-          otherWasteGrams: printProfile.otherWasteGrams ?? 0,
+          id: `${printProfile.id}-plate-1`,
+          name: 'Plate 1',
+          printTimeMinutes: Math.round((printProfile.printTimeHours ?? 0) * 60),
+          materials: [
+            {
+              id: `${printProfile.id}-material-1`,
+              materialId: printProfile.materialId,
+              modelWeightGrams: printProfile.modelWeightGrams ?? 0,
+              supportWeightGrams: printProfile.supportWeightGrams ?? 0,
+              purgeWeightGrams: printProfile.purgeWeightGrams ?? 0,
+              otherWasteGrams: printProfile.otherWasteGrams ?? 0,
+            },
+          ],
         },
       ],
     },

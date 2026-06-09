@@ -22,7 +22,7 @@ const basePrintProfile: PrintProfile = {
 }
 
 describe('printProfileService', () => {
-  it('creates domain print profiles from form values', () => {
+  it('creates domain print profiles from form values with plates', () => {
     const printProfile = createPrintProfileFromFormValues({
       values: {
         productId: 'product-1',
@@ -32,16 +32,23 @@ describe('printProfileService', () => {
           {
             id: 'run-1',
             quantity: 10,
-            printTimeHours: 2,
-            printTimeMinutesPart: 30,
-            materials: [
+            plates: [
               {
-                id: 'usage-1',
-                materialId: 'material-1',
-                modelWeightGrams: 80,
-                supportWeightGrams: 0,
-                purgeWeightGrams: 5,
-                otherWasteGrams: 0,
+                id: 'plate-1',
+                name: 'Plate 1',
+                printTimeHours: 2,
+                printTimeMinutesPart: 30,
+                materials: [
+                  {
+                    id: 'usage-1',
+                    materialId: 'material-1',
+                    label: undefined,
+                    modelWeightGrams: 80,
+                    supportWeightGrams: 0,
+                    purgeWeightGrams: 5,
+                    otherWasteGrams: 0,
+                  },
+                ],
               },
             ],
           },
@@ -52,7 +59,7 @@ describe('printProfileService', () => {
     })
 
     expect(printProfile.productId).toBe('product-1')
-    expect(printProfile.printRuns[0]?.printTimeMinutes).toBe(150)
+    expect(printProfile.printRuns[0]?.plates[0]?.printTimeMinutes).toBe(150)
     expect(printProfile.isFavorite).toBe(false)
     expect(printProfile.isActive).toBe(true)
   })

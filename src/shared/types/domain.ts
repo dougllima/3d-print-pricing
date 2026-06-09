@@ -48,18 +48,25 @@ export type Product = {
 
 export type PrintProfileMaterialUsage = {
   id: string
-  materialId: string
+  materialId?: string
+  label?: string
   modelWeightGrams: number
   supportWeightGrams: number
   purgeWeightGrams: number
   otherWasteGrams: number
 }
 
+export type PrintProfilePlate = {
+  id: string
+  name: string
+  printTimeMinutes: number
+  materials: PrintProfileMaterialUsage[]
+}
+
 export type PrintProfileRun = {
   id: string
   quantity: number
-  printTimeMinutes: number
-  materials: PrintProfileMaterialUsage[]
+  plates: PrintProfilePlate[]
 }
 
 export type PrintProfile = {

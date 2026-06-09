@@ -100,7 +100,8 @@ export function PrintProfileList({
                           <span className="font-medium text-[#17202a]">
                             {printRun.quantity} unidade(s)
                           </span>
-                          <span>Tempo: {formatMinutes(printRun.printTimeMinutes)}</span>
+                          <span>{printRun.plates.length} plate(s)</span>
+                          <span>Tempo: {formatMinutes(summary.totalPrintTimeMinutes)}</span>
                           <span>Peso: {formatWeightGrams(summary.totalWeightGrams)}</span>
                         </div>
                         {summary.result !== undefined && (
@@ -114,11 +115,17 @@ export function PrintProfileList({
                         <ul className="mt-2 space-y-1 text-xs text-[#697782]">
                           {summary.materialUsages.map((materialUsage) => (
                             <li key={materialUsage.id}>
-                              {materialUsage.material?.name ?? 'Material não encontrado'}:{' '}
+                              {materialUsage.plate.name} · {materialUsage.label ?? 'Material'}:{' '}
+                              {materialUsage.material?.name ?? 'Material a escolher'} ·{' '}
                               {formatWeightGrams(materialUsage.totalWeightGrams)}
                             </li>
                           ))}
                         </ul>
+                        {summary.missingMaterialUsages.length > 0 && (
+                          <p className="mt-2 rounded-md border border-[#d8dee2] bg-white px-3 py-2 text-xs text-[#52616b]">
+                            Uma ou mais cores ainda serão escolhidas na hora do uso.
+                          </p>
+                        )}
                         {summary.stockWarnings.length > 0 && (
                           <p className="mt-2 rounded-md border border-[#e5c76b] bg-[#fff8db] px-3 py-2 text-xs text-[#8a6100]">
                             Uma ou mais cores passam do estoque restante.

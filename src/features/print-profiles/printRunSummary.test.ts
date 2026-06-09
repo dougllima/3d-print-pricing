@@ -37,15 +37,22 @@ const materials: Material[] = [
 const printRun: PrintProfile['printRuns'][number] = {
   id: 'run-1',
   quantity: 1,
-  printTimeMinutes: 60,
-  materials: [
+  plates: [
     {
-      id: 'usage-1',
-      materialId: 'material-1',
-      modelWeightGrams: 40,
-      supportWeightGrams: 5,
-      purgeWeightGrams: 0,
-      otherWasteGrams: 0,
+      id: 'plate-1',
+      name: 'Base',
+      printTimeMinutes: 60,
+      materials: [
+        {
+          id: 'usage-1',
+          materialId: 'material-1',
+          label: 'Cor principal',
+          modelWeightGrams: 40,
+          supportWeightGrams: 5,
+          purgeWeightGrams: 0,
+          otherWasteGrams: 0,
+        },
+      ],
     },
   ],
 }
@@ -56,9 +63,30 @@ describe('printRunSummary', () => {
 
     expect(summary.totalWeightGrams).toBe(45)
     expect(summary.materialUsages[0]?.totalWeightGrams).toBe(45)
+    expect(summary.totalPrintTimeMinutes).toBe(60)
     expect(summary.result?.materialCost).toBeCloseTo(4.5)
     expect(summary.result?.energyCost).toBeCloseTo(0.1)
     expect(summary.stockWarnings).toHaveLength(1)
+  })
+
+  it('keeps optional material slots pending without calculating cost', () => {
+    const summary = createPrintRunSummary({
+      materials,
+      printer,
+      settings,
+      printRun: {
+        ...printRun,
+        plates: [
+          {
+            ...printRun.plates[0]!,
+            materials: [{ ...printRun.plates[0]!.materials[0]!, materialId: undefined }],
+          },
+        ],
+      },
+    })
+
+    expect(summary.missingMaterialUsages).toHaveLength(1)
+    expect(summary.result).toBeUndefined()
   })
 
   it('keeps missing entities explicit', () => {
