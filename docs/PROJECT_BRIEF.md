@@ -18,6 +18,8 @@ The app should help the user:
 - track remaining filament quantity for materials;
 - maintain a catalog of printers;
 - save reusable print profiles;
+- maintain a print queue for requested jobs;
+- consume filament stock when a queued print starts;
 - save historical cost calculations.
 
 ## Target user
@@ -37,7 +39,7 @@ Included:
 - Global settings.
 - Product registration.
 - Print profile registration.
-- New calculation flow.
+- Print queue.
 - Optional finishing tasks.
 - Detailed cost breakdown.
 - Suggested selling price.
@@ -91,6 +93,22 @@ Print run weight and time values come from slicer totals for that quantity and m
 
 A saved calculation result. It must store snapshots of the values used at calculation time.
 
+The standalone calculation flow is planned to be removed from the main navigation. Cost should be calculated from saved print profiles and queue items.
+
+### PrintQueueItem
+
+A real print job waiting to be produced.
+
+It references a saved PrintProfile and a specific quantity variation. Optional operational fields include:
+
+- client;
+- price;
+- deadline.
+
+The queue should show product name, selected filaments, plate count and total print time.
+
+Starting a queued item consumes material stock. Finishing it does not change stock.
+
 ### MaterialStock
 
 Material stock data belongs to Material in v1.1.
@@ -103,7 +121,7 @@ It should track:
 
 The app should warn when a calculation may require more material than the remaining stock.
 
-Saving a calculation should not automatically reduce material stock in v1.1. Automatic consumption should be explicit in a future version.
+Saving a calculation should not automatically reduce material stock in v1.1. Queue items consume stock when they are started.
 
 ## UI language
 
@@ -115,7 +133,7 @@ Examples:
 - Impressoras
 - Produtos
 - Impressoes
-- Novo calculo
+- Fila
 - Historico
 - Configuracoes
 - Custo de impressao

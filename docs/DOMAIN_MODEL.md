@@ -289,3 +289,51 @@ Rules:
 - Must store snapshots.
 - Historical calculations must not be recomputed automatically when materials, printers or settings change.
 - Recalculation should create a new CostCalculation.
+
+---
+
+## PrintQueueItem
+
+Represents a real print job waiting to be produced.
+
+UI name: Fila / Fila de impressao.
+
+```ts
+export type PrintQueueStatus = 'queued' | 'started' | 'finished' | 'canceled'
+
+export type PrintQueueItem = {
+  id: string
+  printProfileId: string
+  printRunId: string
+  clientName?: string
+  price?: number
+  deadline?: string
+  position: number
+  status: PrintQueueStatus
+  stockConsumedAt?: string
+  startedAt?: string
+  finishedAt?: string
+  notes?: string
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+```
+
+Rules:
+
+- A PrintQueueItem references one PrintProfile and one PrintProfileRun.
+- The referenced PrintProfileRun defines the quantity variation to print.
+- The referenced PrintProfile must have all material slots filled before it can be added to the queue.
+- The queue does not override materials; filament choices come from the PrintProfile.
+- `clientName`, `price` and `deadline` are optional operational fields.
+- `position` controls manual ordering in the queue.
+- `queued` means the item is waiting to be printed.
+- `started` means the print has begun and stock has already been consumed.
+- `finished` means the print is done.
+- `canceled` means the item should no longer be produced.
+- Material stock must be consumed only when transitioning from `queued` to `started`.
+- Stock consumption must be idempotent; if `stockConsumedAt` is already set, starting again must not subtract stock again.
+- Starting should be blocked when any required material has insufficient remaining stock.
+- Finishing an item must not change stock.
+- Queue items should be logically archived/deactivated instead of permanently deleted when possible.

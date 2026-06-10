@@ -154,6 +154,8 @@ Requirements:
 ```txt
 Read AGENTS.md, docs/DOMAIN_MODEL.md, and docs/CALCULATION_RULES.md.
 
+Legacy note: this standalone flow is planned to be removed from the main navigation. Prefer calculations from saved PrintProfiles and PrintQueueItems in future work.
+
 Implement the New Calculation page.
 
 Requirements:
@@ -186,6 +188,35 @@ Requirements:
 - keep standalone calculation available only as an optional simulation flow;
 - keep repository abstraction;
 - update tests and summarize changed files.
+```
+
+## Task 9.2 - Implement print queue
+
+```txt
+Read AGENTS.md, docs/DOMAIN_MODEL.md, and docs/CALCULATION_RULES.md.
+
+Implement the print queue feature.
+
+Requirements:
+- UI labels in Portuguese;
+- create PrintQueueItem domain type and Zod schema;
+- add repository/storage support for print queue items;
+- remove the standalone New Calculation page from the main navigation;
+- add a Fila page;
+- queue items must reference one PrintProfile and one PrintProfileRun;
+- only runs with all material slots filled can be added to the queue;
+- materials are inherited from the PrintProfile and cannot be overridden in the queue in v1;
+- optional queue fields: client name, price and deadline;
+- show a table with product name, selected filaments, plate count, total print time, client, price, deadline and status;
+- support manual reordering;
+- support queued, started, finished and canceled statuses;
+- starting a queued item must subtract material stock exactly once and set stockConsumedAt;
+- starting must be blocked when controlled stock is insufficient;
+- finishing an item must not change stock;
+- use repository abstraction;
+- cover stock consumption rules with unit tests;
+- run lint, test and build;
+- summarize changed files.
 ```
 
 ## Task 10 - Review implementation

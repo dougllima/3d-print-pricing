@@ -222,6 +222,25 @@ If `lowStockThresholdGrams` is configured and `remainingWeightGrams` is lower th
 
 Saving a calculation must not automatically subtract filament from `remainingWeightGrams` in v1.1. Automatic stock consumption should be introduced later as an explicit user action or setting.
 
+## Queue stock consumption
+
+Print queue items consume stock when production starts, not when the item is created.
+
+Rules:
+
+- A PrintQueueItem can consume stock only when transitioning from `queued` to `started`.
+- Stock consumption must use the selected PrintProfile and PrintProfileRun.
+- Stock consumption must sum material usage across every plate in the selected run.
+- If the selected run uses the same material in multiple slots or plates, sum those usages before validating and subtracting stock.
+- If any material slot is missing `materialId`, the item should not be added to the queue.
+- If any material has insufficient `remainingWeightGrams`, starting should be blocked.
+- If a material has no `remainingWeightGrams`, treat stock as uncontrolled for that material and do not block.
+- After stock is consumed, set `stockConsumedAt`.
+- If `stockConsumedAt` is already set, starting the item again must not subtract stock again.
+- Transitioning from `started` to `finished` must not change stock.
+- Canceling a queued item must not change stock.
+- Canceling or deleting a started item should not automatically restore stock in v1; stock adjustment can be a future explicit feature.
+
 ## Rounding
 
 Business logic should avoid aggressive rounding internally.

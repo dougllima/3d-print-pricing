@@ -60,6 +60,12 @@ Use:
 - A PrintProfilePlate represents one slicer plate that complements its quantity variation.
 - A PrintProfile may use one or more material slots per plate.
 - PrintProfile material slots may leave `materialId` empty when the final filament/color will be chosen later.
+- PrintQueueItem represents a real requested print job and references one PrintProfileRun.
+- PrintQueueItem materials come from the referenced PrintProfile; the queue must not override materials in v1.
+- A PrintProfileRun must have all material slots filled before it can be added to the print queue.
+- Print queue stock consumption happens when an item starts, not when it is created.
+- Starting a queued item must subtract required material stock exactly once and set `stockConsumedAt`.
+- Finishing a queue item must not change stock.
 - PrintProfile may store a slicer profile name, but detailed slicer configuration fields should not be stored until they are used by the product.
 - Saved print run weights and time come from slicer totals and must not be multiplied by quantity again.
 - A CostCalculation is a snapshot and must not change when material or printer data changes later.
