@@ -154,7 +154,7 @@ Requirements:
 ```txt
 Read AGENTS.md, docs/DOMAIN_MODEL.md, and docs/CALCULATION_RULES.md.
 
-Legacy note: this standalone flow is planned to be removed from the main navigation. Prefer calculations from saved PrintProfiles and PrintQueueItems in future work.
+Legacy note: this standalone flow was removed from the main navigation. Prefer calculations from saved PrintProfiles and PrintQueueItems in future work.
 
 Implement the New Calculation page.
 

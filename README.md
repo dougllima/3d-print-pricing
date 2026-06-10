@@ -210,8 +210,8 @@ Assim, o lucro estimado seria R$ 40,00 e a margem real seria 40%.
 * Cadastro de impressoras
 * Cadastro de produtos
 * Cadastro de impressões
-* Cálculo avulso
 * Cálculo baseado em impressão salva
+* Fila de impressão
 * Acabamento opcional
 * Resultado detalhado de custos
 * Preço sugerido
@@ -237,7 +237,7 @@ Assim, o lucro estimado seria R$ 40,00 e a margem real seria 40%.
 ## Telas planejadas
 
 * Dashboard
-* Novo cálculo
+* Fila
 * Produtos
 * Impressões
 * Materiais
@@ -367,7 +367,7 @@ Executa a análise estática do código.
 * [ ] CRUD de impressoras
 * [ ] CRUD de produtos
 * [ ] CRUD de impressões
-* [ ] Fluxo de novo cálculo
+* [ ] Fila de impressão
 * [ ] Histórico de cálculos
 * [ ] Dashboard inicial
 * [ ] Polimento visual

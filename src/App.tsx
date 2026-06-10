@@ -1,6 +1,5 @@
 import {
   BarChart3,
-  Calculator,
   Cuboid,
   Factory,
   History,
@@ -11,7 +10,6 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 
-import { NewCalculationPage } from '@/features/calculations'
 import { DashboardPage } from '@/features/dashboard'
 import { HistoryPage } from '@/features/history'
 import { MaterialsPage } from '@/features/materials'
@@ -22,7 +20,6 @@ import { SettingsPage } from '@/features/settings'
 import { cn } from '@/shared/utils'
 
 type AppSection =
-  | 'calculations'
   | 'dashboard'
   | 'history'
   | 'materials'
@@ -33,7 +30,6 @@ type AppSection =
 
 const navigationItems = [
   { label: 'Dashboard', icon: BarChart3, section: 'dashboard' },
-  { label: 'Novo cálculo', icon: Calculator, section: 'calculations' },
   { label: 'Produtos', icon: Package, section: 'products' },
   { label: 'Impressões', icon: Layers3, section: 'printProfiles' },
   { label: 'Materiais', icon: Cuboid, section: 'materials' },
@@ -45,7 +41,6 @@ const navigationItems = [
 function App() {
   const [activeSection, setActiveSection] = useState<AppSection>('dashboard')
   const ActivePage = {
-    calculations: NewCalculationPage,
     dashboard: DashboardPage,
     history: HistoryPage,
     materials: MaterialsPage,

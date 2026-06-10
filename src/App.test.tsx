@@ -13,7 +13,7 @@ describe('App', () => {
     render(<App />)
 
     expect(screen.getByRole('heading', { name: /Vis.o geral do MVP/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Novo c.lculo/i })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Novo c.lculo/i })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Impress.es/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Configura..es/i })).toBeInTheDocument()
     expect(await screen.findByText(/Nenhum c.lculo salvo ainda/i)).toBeInTheDocument()
@@ -47,14 +47,10 @@ describe('App', () => {
     expect(await screen.findByText(/Nenhuma impress.o ativa cadastrada/i)).toBeInTheDocument()
   })
 
-  it('opens calculation, history and settings from navigation', async () => {
+  it('opens history and settings from navigation', async () => {
     const user = userEvent.setup()
 
     render(<App />)
-
-    await user.click(screen.getByRole('button', { name: /Novo c.lculo/i }))
-    expect(screen.getByRole('heading', { name: /Calcular custo e pre.o/i })).toBeInTheDocument()
-    expect(screen.getByText(/Preencha os dados e calcule para ver o detalhamento/i)).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: /^Hist.rico$/i }))
     expect(screen.getByRole('heading', { name: /C.lculos salvos/i })).toBeInTheDocument()
