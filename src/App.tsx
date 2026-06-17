@@ -4,6 +4,7 @@ import {
   Factory,
   History,
   Layers3,
+  ListOrdered,
   Package,
   Printer,
   Settings,
@@ -14,6 +15,7 @@ import { DashboardPage } from '@/features/dashboard'
 import { HistoryPage } from '@/features/history'
 import { MaterialsPage } from '@/features/materials'
 import { PrintProfilesPage } from '@/features/print-profiles'
+import { PrintQueuePage } from '@/features/print-queue'
 import { PrintersPage } from '@/features/printers'
 import { ProductsPage } from '@/features/products'
 import { SettingsPage } from '@/features/settings'
@@ -24,6 +26,7 @@ type AppSection =
   | 'history'
   | 'materials'
   | 'printProfiles'
+  | 'printQueue'
   | 'printers'
   | 'products'
   | 'settings'
@@ -32,6 +35,7 @@ const navigationItems = [
   { label: 'Dashboard', icon: BarChart3, section: 'dashboard' },
   { label: 'Produtos', icon: Package, section: 'products' },
   { label: 'Impressões', icon: Layers3, section: 'printProfiles' },
+  { label: 'Fila', icon: ListOrdered, section: 'printQueue' },
   { label: 'Materiais', icon: Cuboid, section: 'materials' },
   { label: 'Impressoras', icon: Printer, section: 'printers' },
   { label: 'Histórico', icon: History, section: 'history' },
@@ -45,6 +49,7 @@ function App() {
     history: HistoryPage,
     materials: MaterialsPage,
     printProfiles: PrintProfilesPage,
+    printQueue: PrintQueuePage,
     printers: PrintersPage,
     products: ProductsPage,
     settings: SettingsPage,

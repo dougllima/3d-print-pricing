@@ -15,6 +15,7 @@ describe('App', () => {
     expect(screen.getByRole('heading', { name: /Vis.o geral do MVP/i })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Novo c.lculo/i })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Impress.es/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Fila/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Configura..es/i })).toBeInTheDocument()
     expect(await screen.findByText(/Nenhum c.lculo salvo ainda/i)).toBeInTheDocument()
   })
@@ -45,6 +46,16 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: /Impress.es/i }))
     expect(screen.getByRole('heading', { name: /Perfis de fabrica..o/i })).toBeInTheDocument()
     expect(await screen.findByText(/Nenhuma impress.o ativa cadastrada/i)).toBeInTheDocument()
+  })
+
+  it('opens print queue from navigation', async () => {
+    const user = userEvent.setup()
+
+    render(<App />)
+
+    await user.click(screen.getByRole('button', { name: /Fila/i }))
+    expect(screen.getByRole('heading', { name: /Fila de impress.o/i })).toBeInTheDocument()
+    expect(await screen.findByText(/Nenhuma impress.o na fila/i)).toBeInTheDocument()
   })
 
   it('opens history and settings from navigation', async () => {
