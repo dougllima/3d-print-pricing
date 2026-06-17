@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import { STORAGE_KEYS } from '@/shared/constants'
-import type { CostCalculation, Material } from '@/shared/types'
+import type { CostCalculation, Material, PrintQueueItem } from '@/shared/types'
 import { defaultSettings } from '@/shared/types'
 
 import { createLocalStorageRepositories } from './localStorageRepositories'
@@ -63,6 +63,20 @@ const costCalculation: CostCalculation = {
   createdAt: now,
 }
 
+const printQueueItem: PrintQueueItem = {
+  id: 'queue-1',
+  printProfileId: 'profile-1',
+  printRunId: 'run-1',
+  clientName: 'Cliente A',
+  price: 120,
+  deadline: '2026-06-30',
+  position: 0,
+  status: 'queued',
+  isActive: true,
+  createdAt: now,
+  updatedAt: now,
+}
+
 describe('localStorage repositories', () => {
   beforeEach(() => {
     localStorage.clear()
@@ -114,6 +128,15 @@ describe('localStorage repositories', () => {
     expect(localStorage.getItem(STORAGE_KEYS.costCalculations)).toContain(
       costCalculation.snapshot.materialName,
     )
+  })
+
+  it('supports print queue entities', async () => {
+    const repositories = createLocalStorageRepositories(localStorage)
+
+    await repositories.printQueue.save(printQueueItem)
+
+    await expect(repositories.printQueue.list()).resolves.toEqual([printQueueItem])
+    expect(localStorage.getItem(STORAGE_KEYS.printQueue)).toContain(printQueueItem.printProfileId)
   })
 
   it('removes and clears persisted entities', async () => {

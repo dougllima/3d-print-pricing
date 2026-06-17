@@ -4,6 +4,7 @@ import type {
   Material,
   Printer,
   PrintProfile,
+  PrintQueueItem,
   Product,
 } from '@/shared/types'
 
@@ -31,6 +32,7 @@ export type AppRepositories = {
   printers: EntityRepository<Printer>
   products: EntityRepository<Product>
   printProfiles: EntityRepository<PrintProfile>
+  printQueue: EntityRepository<PrintQueueItem>
   settings: SettingsRepository
   costCalculations: EntityRepository<CostCalculation>
 }

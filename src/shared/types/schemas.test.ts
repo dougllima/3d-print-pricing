@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest'
 
 import { defaultSettings } from './domain'
-import { globalSettingsSchema, materialSchema, printProfileSchema, productSchema } from './schemas'
+import {
+  globalSettingsSchema,
+  materialSchema,
+  printProfileSchema,
+  printQueueItemSchema,
+  productSchema,
+} from './schemas'
 
 const now = '2026-06-03T17:00:00.000Z'
 
@@ -174,5 +180,38 @@ describe('domain schemas', () => {
 
   it('validates the default global settings', () => {
     expect(globalSettingsSchema.safeParse(defaultSettings).success).toBe(true)
+  })
+
+  it('accepts valid print queue items', () => {
+    const result = printQueueItemSchema.safeParse({
+      id: 'queue-1',
+      printProfileId: 'profile-1',
+      printRunId: 'run-1',
+      clientName: 'Cliente A',
+      price: 120,
+      deadline: '2026-06-30',
+      position: 0,
+      status: 'queued',
+      isActive: true,
+      createdAt: now,
+      updatedAt: now,
+    })
+
+    expect(result.success).toBe(true)
+  })
+
+  it('rejects invalid print queue status and negative position', () => {
+    const result = printQueueItemSchema.safeParse({
+      id: 'queue-1',
+      printProfileId: 'profile-1',
+      printRunId: 'run-1',
+      position: -1,
+      status: 'waiting',
+      isActive: true,
+      createdAt: now,
+      updatedAt: now,
+    })
+
+    expect(result.success).toBe(false)
   })
 })

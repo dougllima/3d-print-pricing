@@ -7,6 +7,7 @@ export const STORAGE_KEYS = {
   printers: '3d-print-pricing:printers',
   products: '3d-print-pricing:products',
   printProfiles: '3d-print-pricing:print-profiles',
+  printQueue: '3d-print-pricing:print-queue',
   settings: '3d-print-pricing:settings',
   costCalculations: '3d-print-pricing:cost-calculations',
 } as const

@@ -1,6 +1,8 @@
 export const materialTypes = ['PLA', 'PETG', 'ABS', 'TPU', 'OTHER'] as const
+export const printQueueStatuses = ['queued', 'started', 'finished', 'canceled'] as const
 
 export type MaterialType = (typeof materialTypes)[number]
+export type PrintQueueStatus = (typeof printQueueStatuses)[number]
 
 export type Material = {
   id: string
@@ -158,4 +160,22 @@ export type CostCalculation = {
     wastePercent: number
   }
   createdAt: string
+}
+
+export type PrintQueueItem = {
+  id: string
+  printProfileId: string
+  printRunId: string
+  clientName?: string
+  price?: number
+  deadline?: string
+  position: number
+  status: PrintQueueStatus
+  stockConsumedAt?: string
+  startedAt?: string
+  finishedAt?: string
+  notes?: string
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
 }

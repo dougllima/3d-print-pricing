@@ -5,6 +5,7 @@ import {
   materialSchema,
   printerSchema,
   printProfileSchema,
+  printQueueItemSchema,
   productSchema,
 } from '@/shared/types'
 
@@ -21,6 +22,11 @@ export function createLocalStorageRepositories(storage: StorageLike): AppReposit
       storage,
       STORAGE_KEYS.printProfiles,
       printProfileSchema,
+    ),
+    printQueue: new LocalStorageEntityRepository(
+      storage,
+      STORAGE_KEYS.printQueue,
+      printQueueItemSchema,
     ),
     settings: new LocalStorageSettingsRepository(storage, STORAGE_KEYS.settings, globalSettingsSchema),
     costCalculations: new LocalStorageEntityRepository(

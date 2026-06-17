@@ -1,6 +1,7 @@
 export {
   defaultSettings,
   materialTypes,
+  printQueueStatuses,
   type CostCalculation,
   type FinishingTask,
   type GlobalSettings,
@@ -11,6 +12,8 @@ export {
   type PrintProfileMaterialUsage,
   type PrintProfilePlate,
   type PrintProfileRun,
+  type PrintQueueItem,
+  type PrintQueueStatus,
   type Product,
 } from './domain'
 
@@ -28,5 +31,7 @@ export {
   printProfilePlateSchema,
   printProfileRunSchema,
   printProfileSchema,
+  printQueueItemSchema,
+  printQueueStatusSchema,
   productSchema,
 } from './schemas'

@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { materialTypes } from './domain'
+import { materialTypes, printQueueStatuses } from './domain'
 import type { PrintProfile, Product } from './domain'
 
 const hexColorRegex = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/
@@ -13,6 +13,7 @@ const positiveNumberSchema = z.number().positive()
 const percentSchema = z.number().min(0).max(100)
 
 export const materialTypeSchema = z.enum(materialTypes)
+export const printQueueStatusSchema = z.enum(printQueueStatuses)
 
 export const materialSchema = z.object({
   id: requiredTextSchema,
@@ -300,4 +301,22 @@ export const costCalculationSchema = z.object({
   finishingTasks: z.array(finishingTaskSchema),
   result: costCalculationResultSchema,
   createdAt: dateTimeSchema,
+}).strict()
+
+export const printQueueItemSchema = z.object({
+  id: requiredTextSchema,
+  printProfileId: requiredTextSchema,
+  printRunId: requiredTextSchema,
+  clientName: optionalTextSchema,
+  price: nonNegativeNumberSchema.optional(),
+  deadline: optionalTextSchema,
+  position: z.number().int().nonnegative(),
+  status: printQueueStatusSchema,
+  stockConsumedAt: dateTimeSchema.optional(),
+  startedAt: dateTimeSchema.optional(),
+  finishedAt: dateTimeSchema.optional(),
+  notes: optionalTextSchema,
+  isActive: z.boolean(),
+  createdAt: dateTimeSchema,
+  updatedAt: dateTimeSchema,
 }).strict()
