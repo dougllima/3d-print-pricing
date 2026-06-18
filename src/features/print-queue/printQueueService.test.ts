@@ -3,7 +3,9 @@ import { describe, expect, it } from 'vitest'
 import type { Material, PrintProfile, PrintQueueItem } from '@/shared/types'
 
 import {
+  archivePrintQueueItem,
   canAddPrintRunToQueue,
+  cancelPrintQueueItem,
   createPrintQueueItem,
   finishPrintQueueItem,
   getNextQueuePosition,
@@ -217,5 +219,40 @@ describe('printQueueService', () => {
       expect(result.item.finishedAt).toBe(now)
       expect(result.materials).toEqual([])
     }
+  })
+
+  it('cancels queued or started items without changing stock', () => {
+    const result = cancelPrintQueueItem({
+      item: { ...queueItem, status: 'started', stockConsumedAt: now },
+      now,
+    })
+
+    expect(result.success).toBe(true)
+
+    if (result.success) {
+      expect(result.item.status).toBe('canceled')
+      expect(result.item.stockConsumedAt).toBe(now)
+      expect(result.materials).toEqual([])
+    }
+  })
+
+  it('does not cancel finished items', () => {
+    const result = cancelPrintQueueItem({
+      item: { ...queueItem, status: 'finished' },
+      now,
+    })
+
+    expect(result).toEqual({
+      message: 'Itens finalizados não podem ser cancelados.',
+      success: false,
+    })
+  })
+
+  it('archives queue items from the active list', () => {
+    expect(archivePrintQueueItem({ item: queueItem, now })).toEqual({
+      ...queueItem,
+      isActive: false,
+      updatedAt: now,
+    })
   })
 })

@@ -259,3 +259,38 @@ export function finishPrintQueueItem(input: {
     success: true,
   }
 }
+
+export function cancelPrintQueueItem(input: {
+  item: PrintQueueItem
+  now?: string
+}): QueueOperationResult {
+  const now = input.now ?? createTimestamp()
+
+  if (input.item.status === 'finished') {
+    return {
+      message: 'Itens finalizados não podem ser cancelados.',
+      success: false,
+    }
+  }
+
+  return {
+    item: {
+      ...input.item,
+      status: 'canceled',
+      updatedAt: now,
+    },
+    materials: [],
+    success: true,
+  }
+}
+
+export function archivePrintQueueItem(input: {
+  item: PrintQueueItem
+  now?: string
+}): PrintQueueItem {
+  return {
+    ...input.item,
+    isActive: false,
+    updatedAt: input.now ?? createTimestamp(),
+  }
+}

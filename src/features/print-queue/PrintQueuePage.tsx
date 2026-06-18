@@ -1,4 +1,13 @@
-import { ArrowDown, ArrowUp, CheckCircle2, Pencil, Play, Save, X } from 'lucide-react'
+import {
+  Archive,
+  ArrowDown,
+  ArrowUp,
+  CheckCircle2,
+  Pencil,
+  Play,
+  Save,
+  X,
+} from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { useRepositories } from '@/app/useRepositories'
@@ -17,6 +26,8 @@ import { createTimestamp } from '@/shared/utils'
 
 import { createPrintQueueItemSummary } from './printQueueSummary'
 import {
+  archivePrintQueueItem,
+  cancelPrintQueueItem,
   finishPrintQueueItem,
   startPrintQueueItem,
   updatePrintQueueItemDetails,
@@ -207,6 +218,25 @@ export function PrintQueuePage() {
 
     await repositories.printQueue.save(result.item)
     setQueueMessage('Impressão finalizada.')
+    await loadQueueData()
+  }
+
+  async function cancelItem(item: PrintQueueItem) {
+    const result = cancelPrintQueueItem({ item })
+
+    if (!result.success) {
+      setQueueMessage(result.message)
+      return
+    }
+
+    await repositories.printQueue.save(result.item)
+    setQueueMessage('Item cancelado.')
+    await loadQueueData()
+  }
+
+  async function archiveItem(item: PrintQueueItem) {
+    await repositories.printQueue.save(archivePrintQueueItem({ item }))
+    setQueueMessage('Item removido da fila.')
     await loadQueueData()
   }
 
@@ -440,6 +470,23 @@ export function PrintQueuePage() {
                           >
                             <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
                             Finalizar
+                          </button>
+                          <button
+                            className="inline-flex items-center gap-2 rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm font-medium text-[#34434d] disabled:cursor-not-allowed disabled:opacity-50"
+                            disabled={item.status === 'finished' || item.status === 'canceled'}
+                            onClick={() => void cancelItem(item)}
+                            type="button"
+                          >
+                            <X className="h-4 w-4" aria-hidden="true" />
+                            Cancelar
+                          </button>
+                          <button
+                            className="inline-flex items-center gap-2 rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm font-medium text-[#34434d]"
+                            onClick={() => void archiveItem(item)}
+                            type="button"
+                          >
+                            <Archive className="h-4 w-4" aria-hidden="true" />
+                            Arquivar
                           </button>
                         </div>
                       </td>
