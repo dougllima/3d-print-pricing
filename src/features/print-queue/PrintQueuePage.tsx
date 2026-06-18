@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp } from 'lucide-react'
+import { ArrowDown, ArrowUp, CheckCircle2, Play } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { useRepositories } from '@/app/useRepositories'
@@ -15,6 +15,7 @@ import { formatCurrency, formatMinutes } from '@/shared/utils'
 import { createTimestamp } from '@/shared/utils'
 
 import { createPrintQueueItemSummary } from './printQueueSummary'
+import { finishPrintQueueItem, startPrintQueueItem } from './printQueueService'
 
 const statusLabels: Record<PrintQueueItem['status'], string> = {
   canceled: 'Cancelada',
@@ -42,6 +43,7 @@ export function PrintQueuePage() {
   const [printProfiles, setPrintProfiles] = useState<PrintProfile[]>([])
   const [products, setProducts] = useState<Product[]>([])
   const [queueItems, setQueueItems] = useState<PrintQueueItem[]>([])
+  const [queueMessage, setQueueMessage] = useState<string | undefined>()
   const [settings, setSettings] = useState<GlobalSettings>(defaultSettings)
 
   const loadQueueData = useCallback(async () => {
@@ -157,6 +159,37 @@ export function PrintQueuePage() {
     await loadQueueData()
   }
 
+  async function startItem(item: PrintQueueItem) {
+    const result = startPrintQueueItem({
+      item,
+      materials,
+      printProfiles,
+    })
+
+    if (!result.success) {
+      setQueueMessage(result.message)
+      return
+    }
+
+    await repositories.materials.saveMany(result.materials)
+    await repositories.printQueue.save(result.item)
+    setQueueMessage('Impressão iniciada e estoque atualizado.')
+    await loadQueueData()
+  }
+
+  async function finishItem(item: PrintQueueItem) {
+    const result = finishPrintQueueItem({ item })
+
+    if (!result.success) {
+      setQueueMessage(result.message)
+      return
+    }
+
+    await repositories.printQueue.save(result.item)
+    setQueueMessage('Impressão finalizada.')
+    await loadQueueData()
+  }
+
   return (
     <div className="space-y-5">
       <header className="border-b border-[#d8dee2] bg-white px-5 py-5 md:px-8">
@@ -165,8 +198,15 @@ export function PrintQueuePage() {
             <p className="text-sm font-medium text-[#1f7a78]">Fila</p>
             <h1 className="mt-1 text-2xl font-semibold text-[#17202a]">Fila de impressão</h1>
           </div>
-          <div className="rounded-md border border-[#d8dee2] bg-[#fbfcfd] px-3 py-2 text-sm text-[#52616b]">
-            {activeQueueItems.length} item(ns) na fila
+          <div className="flex flex-wrap gap-2">
+            <div className="rounded-md border border-[#d8dee2] bg-[#fbfcfd] px-3 py-2 text-sm text-[#52616b]">
+              {activeQueueItems.length} item(ns) na fila
+            </div>
+            {queueMessage && (
+              <div className="rounded-md border border-[#d8dee2] bg-[#fbfcfd] px-3 py-2 text-sm text-[#52616b]">
+                {queueMessage}
+              </div>
+            )}
           </div>
         </div>
       </header>
@@ -178,7 +218,7 @@ export function PrintQueuePage() {
           </section>
         ) : (
           <section className="overflow-x-auto rounded-md border border-[#d8dee2] bg-white shadow-sm">
-            <table className="min-w-[64rem] w-full border-collapse text-left text-sm">
+            <table className="min-w-[72rem] w-full border-collapse text-left text-sm">
               <thead className="border-b border-[#d8dee2] bg-[#fbfcfd] text-xs uppercase text-[#697782]">
                 <tr>
                   <th className="px-4 py-3 font-semibold">Ordem</th>
@@ -190,6 +230,7 @@ export function PrintQueuePage() {
                   <th className="px-4 py-3 font-semibold">Preço</th>
                   <th className="px-4 py-3 font-semibold">Prazo</th>
                   <th className="px-4 py-3 font-semibold">Status</th>
+                  <th className="px-4 py-3 font-semibold">Ações</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#edf1f3]">
@@ -258,6 +299,28 @@ export function PrintQueuePage() {
                         <span className="rounded-md bg-[#e8eef0] px-2 py-1 text-xs font-medium text-[#52616b]">
                           {statusLabels[item.status]}
                         </span>
+                      </td>
+                      <td className="px-4 py-3 align-top">
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            className="inline-flex items-center gap-2 rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm font-medium text-[#34434d] disabled:cursor-not-allowed disabled:opacity-50"
+                            disabled={item.status !== 'queued'}
+                            onClick={() => void startItem(item)}
+                            type="button"
+                          >
+                            <Play className="h-4 w-4" aria-hidden="true" />
+                            Iniciar
+                          </button>
+                          <button
+                            className="inline-flex items-center gap-2 rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm font-medium text-[#34434d] disabled:cursor-not-allowed disabled:opacity-50"
+                            disabled={item.status !== 'started'}
+                            onClick={() => void finishItem(item)}
+                            type="button"
+                          >
+                            <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
+                            Finalizar
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   )

@@ -2,7 +2,14 @@ import { describe, expect, it } from 'vitest'
 
 import type { Material, PrintProfile, PrintQueueItem } from '@/shared/types'
 
-import { canAddPrintRunToQueue, createPrintQueueItem, getNextQueuePosition } from './printQueueService'
+import {
+  canAddPrintRunToQueue,
+  createPrintQueueItem,
+  finishPrintQueueItem,
+  getNextQueuePosition,
+  getPrintRunMaterialRequirements,
+  startPrintQueueItem,
+} from './printQueueService'
 
 const now = '2026-06-17T10:00:00.000Z'
 
@@ -15,6 +22,13 @@ const materials: Material[] = [
     isActive: true,
     createdAt: now,
     updatedAt: now,
+  },
+]
+
+const trackedMaterials: Material[] = [
+  {
+    ...materials[0]!,
+    remainingWeightGrams: 100,
   },
 ]
 
@@ -38,6 +52,16 @@ const printRun: PrintProfile['printRuns'][number] = {
       ],
     },
   ],
+}
+
+const printProfile: PrintProfile = {
+  id: 'profile-1',
+  name: 'Porta joias',
+  printerId: 'printer-1',
+  printRuns: [printRun],
+  isActive: true,
+  createdAt: now,
+  updatedAt: now,
 }
 
 const queueItem: PrintQueueItem = {
@@ -87,5 +111,93 @@ describe('printQueueService', () => {
     expect(item.position).toBe(3)
     expect(item.status).toBe('queued')
     expect(item.isActive).toBe(true)
+  })
+
+  it('sums material requirements across all plates', () => {
+    const requirements = getPrintRunMaterialRequirements({
+      ...printRun,
+      plates: [
+        printRun.plates[0]!,
+        {
+          ...printRun.plates[0]!,
+          id: 'plate-2',
+          materials: [
+            {
+              ...printRun.plates[0]!.materials[0]!,
+              id: 'usage-2',
+              modelWeightGrams: 25,
+            },
+          ],
+        },
+      ],
+    })
+
+    expect(requirements).toEqual([
+      {
+        materialId: 'material-1',
+        requiredWeightGrams: 75,
+      },
+    ])
+  })
+
+  it('starts queued items and subtracts controlled material stock once', () => {
+    const result = startPrintQueueItem({
+      item: queueItem,
+      materials: trackedMaterials,
+      now,
+      printProfiles: [printProfile],
+    })
+
+    expect(result.success).toBe(true)
+
+    if (!result.success) {
+      return
+    }
+
+    expect(result.item.status).toBe('started')
+    expect(result.item.stockConsumedAt).toBe(now)
+    expect(result.materials[0]?.remainingWeightGrams).toBe(50)
+
+    const idempotentResult = startPrintQueueItem({
+      item: { ...result.item, status: 'queued' },
+      materials: result.materials,
+      now: '2026-06-17T11:00:00.000Z',
+      printProfiles: [printProfile],
+    })
+
+    expect(idempotentResult.success).toBe(true)
+
+    if (idempotentResult.success) {
+      expect(idempotentResult.materials[0]?.remainingWeightGrams).toBe(50)
+    }
+  })
+
+  it('blocks starting when controlled material stock is insufficient', () => {
+    const result = startPrintQueueItem({
+      item: queueItem,
+      materials: [{ ...trackedMaterials[0]!, remainingWeightGrams: 10 }],
+      now,
+      printProfiles: [printProfile],
+    })
+
+    expect(result).toEqual({
+      message: 'Estoque insuficiente para PLA Preto.',
+      success: false,
+    })
+  })
+
+  it('finishes started items without changing stock', () => {
+    const result = finishPrintQueueItem({
+      item: { ...queueItem, status: 'started', stockConsumedAt: now },
+      now,
+    })
+
+    expect(result.success).toBe(true)
+
+    if (result.success) {
+      expect(result.item.status).toBe('finished')
+      expect(result.item.finishedAt).toBe(now)
+      expect(result.materials).toEqual([])
+    }
   })
 })
