@@ -1,12 +1,17 @@
-import { Archive, Copy, Pencil, Star } from 'lucide-react'
+import { Archive, Copy, ListPlus, Pencil, Star } from 'lucide-react'
 
 import type { GlobalSettings, Material, Printer, PrintProfile, Product } from '@/shared/types'
 import { cn, formatCurrency, formatMinutes, formatWeightGrams } from '@/shared/utils'
 
+import { canAddPrintRunToQueue } from '../print-queue/printQueueService'
 import { createPrintRunSummary, findEntityName } from './printRunSummary'
 
 type PrintProfileListProps = {
   materials: Material[]
+  onAddToQueue: (
+    printProfile: PrintProfile,
+    printRun: PrintProfile['printRuns'][number],
+  ) => Promise<void>
   onArchive: (printProfile: PrintProfile) => Promise<void>
   onDuplicate: (printProfile: PrintProfile) => Promise<void>
   onEdit: (printProfile: PrintProfile) => void
@@ -27,6 +32,7 @@ function findById<TItem extends { id: string }>(items: TItem[], id?: string) {
 
 export function PrintProfileList({
   materials,
+  onAddToQueue,
   onArchive,
   onDuplicate,
   onEdit,
@@ -90,6 +96,7 @@ export function PrintProfileList({
                       printer,
                       settings,
                     })
+                    const canAddToQueue = canAddPrintRunToQueue({ materials, printRun })
 
                     return (
                       <div
@@ -131,6 +138,20 @@ export function PrintProfileList({
                             Uma ou mais cores passam do estoque restante.
                           </p>
                         )}
+                        <button
+                          className="mt-3 inline-flex items-center gap-2 rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm font-medium text-[#34434d] disabled:cursor-not-allowed disabled:opacity-50"
+                          disabled={!canAddToQueue}
+                          onClick={() => void onAddToQueue(printProfile, printRun)}
+                          title={
+                            canAddToQueue
+                              ? undefined
+                              : 'Defina todos os filamentos antes de adicionar à fila.'
+                          }
+                          type="button"
+                        >
+                          <ListPlus className="h-4 w-4" aria-hidden="true" />
+                          Adicionar à fila
+                        </button>
                       </div>
                     )
                   })}

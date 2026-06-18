@@ -10,6 +10,7 @@ import {
   type Product,
 } from '@/shared/types'
 
+import { createPrintQueueItem } from '../print-queue/printQueueService'
 import { PrintProfileForm } from './PrintProfileForm'
 import { PrintProfileList } from './PrintProfileList'
 import {
@@ -40,6 +41,7 @@ export function PrintProfilesPage() {
   const [printers, setPrinters] = useState<Printer[]>([])
   const [printProfiles, setPrintProfiles] = useState<PrintProfile[]>([])
   const [products, setProducts] = useState<Product[]>([])
+  const [queueMessage, setQueueMessage] = useState<string | undefined>()
   const [settings, setSettings] = useState<GlobalSettings>(defaultSettings)
 
   const loadPrintProfiles = useCallback(async () => {
@@ -117,6 +119,22 @@ export function PrintProfilesPage() {
     await loadPrintProfiles()
   }
 
+  async function addPrintRunToQueue(
+    printProfile: PrintProfile,
+    printRun: PrintProfile['printRuns'][number],
+  ) {
+    const existingItems = await repositories.printQueue.list()
+
+    await repositories.printQueue.save(
+      createPrintQueueItem({
+        existingItems,
+        printProfileId: printProfile.id,
+        printRunId: printRun.id,
+      }),
+    )
+    setQueueMessage('Impressão adicionada à fila.')
+  }
+
   return (
     <div className="space-y-5">
       <header className="border-b border-[#d8dee2] bg-white px-5 py-5 md:px-8">
@@ -127,8 +145,15 @@ export function PrintProfilesPage() {
               Perfis de fabricação
             </h1>
           </div>
-          <div className="rounded-md border border-[#d8dee2] bg-[#fbfcfd] px-3 py-2 text-sm text-[#52616b]">
-            {activePrintProfiles.length} impressão(ões) ativa(s)
+          <div className="flex flex-wrap gap-2">
+            <div className="rounded-md border border-[#d8dee2] bg-[#fbfcfd] px-3 py-2 text-sm text-[#52616b]">
+              {activePrintProfiles.length} impressão(ões) ativa(s)
+            </div>
+            {queueMessage && (
+              <div className="rounded-md border border-[#d8dee2] bg-[#fbfcfd] px-3 py-2 text-sm text-[#52616b]">
+                {queueMessage}
+              </div>
+            )}
           </div>
         </div>
       </header>
@@ -145,6 +170,7 @@ export function PrintProfilesPage() {
         />
         <PrintProfileList
           materials={materials}
+          onAddToQueue={addPrintRunToQueue}
           onArchive={(printProfile) => updatePrintProfile(printProfile, { isActive: false })}
           onDuplicate={duplicatePrintProfile}
           onEdit={setEditingPrintProfile}
