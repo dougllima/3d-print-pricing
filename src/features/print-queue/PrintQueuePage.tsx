@@ -1,7 +1,8 @@
-import { ArrowDown, ArrowUp, CheckCircle2, Play } from 'lucide-react'
+import { ArrowDown, ArrowUp, CheckCircle2, Pencil, Play, Save, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { useRepositories } from '@/app/useRepositories'
+import { CurrencyInput } from '@/shared/components'
 import type {
   GlobalSettings,
   Material,
@@ -15,7 +16,11 @@ import { formatCurrency, formatMinutes } from '@/shared/utils'
 import { createTimestamp } from '@/shared/utils'
 
 import { createPrintQueueItemSummary } from './printQueueSummary'
-import { finishPrintQueueItem, startPrintQueueItem } from './printQueueService'
+import {
+  finishPrintQueueItem,
+  startPrintQueueItem,
+  updatePrintQueueItemDetails,
+} from './printQueueService'
 
 const statusLabels: Record<PrintQueueItem['status'], string> = {
   canceled: 'Cancelada',
@@ -36,6 +41,15 @@ function formatOptionalText(value: string | undefined) {
   return value === undefined ? '-' : value
 }
 
+type QueueItemDetailsDraft = {
+  clientName: string
+  deadline: string
+  price: number | undefined
+}
+
+const tableInputClassName =
+  'w-full min-w-32 rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm outline-none focus:border-[#1f7a78]'
+
 export function PrintQueuePage() {
   const repositories = useRepositories()
   const [materials, setMaterials] = useState<Material[]>([])
@@ -44,6 +58,12 @@ export function PrintQueuePage() {
   const [products, setProducts] = useState<Product[]>([])
   const [queueItems, setQueueItems] = useState<PrintQueueItem[]>([])
   const [queueMessage, setQueueMessage] = useState<string | undefined>()
+  const [editingItemId, setEditingItemId] = useState<string | undefined>()
+  const [detailsDraft, setDetailsDraft] = useState<QueueItemDetailsDraft>({
+    clientName: '',
+    deadline: '',
+    price: undefined,
+  })
   const [settings, setSettings] = useState<GlobalSettings>(defaultSettings)
 
   const loadQueueData = useCallback(async () => {
@@ -190,6 +210,36 @@ export function PrintQueuePage() {
     await loadQueueData()
   }
 
+  function startEditingDetails(item: PrintQueueItem) {
+    setEditingItemId(item.id)
+    setDetailsDraft({
+      clientName: item.clientName ?? '',
+      deadline: item.deadline ?? '',
+      price: item.price,
+    })
+  }
+
+  function cancelEditingDetails() {
+    setEditingItemId(undefined)
+    setDetailsDraft({
+      clientName: '',
+      deadline: '',
+      price: undefined,
+    })
+  }
+
+  async function saveItemDetails(item: PrintQueueItem) {
+    await repositories.printQueue.save(
+      updatePrintQueueItemDetails({
+        item,
+        values: detailsDraft,
+      }),
+    )
+    setQueueMessage('Dados da fila atualizados.')
+    cancelEditingDetails()
+    await loadQueueData()
+  }
+
   return (
     <div className="space-y-5">
       <header className="border-b border-[#d8dee2] bg-white px-5 py-5 md:px-8">
@@ -287,13 +337,55 @@ export function PrintQueuePage() {
                         {formatMinutes(summary.totalPrintTimeMinutes)}
                       </td>
                       <td className="px-4 py-3 align-top text-[#52616b]">
-                        {formatOptionalText(item.clientName)}
+                        {editingItemId === item.id ? (
+                          <input
+                            className={tableInputClassName}
+                            onChange={(event) =>
+                              setDetailsDraft((currentDraft) => ({
+                                ...currentDraft,
+                                clientName: event.target.value,
+                              }))
+                            }
+                            placeholder="Cliente"
+                            value={detailsDraft.clientName}
+                          />
+                        ) : (
+                          formatOptionalText(item.clientName)
+                        )}
                       </td>
                       <td className="px-4 py-3 align-top text-[#52616b]">
-                        {formatOptionalCurrency(item.price)}
+                        {editingItemId === item.id ? (
+                          <CurrencyInput
+                            className={tableInputClassName}
+                            onChange={(price) =>
+                              setDetailsDraft((currentDraft) => ({
+                                ...currentDraft,
+                                price,
+                              }))
+                            }
+                            placeholder="R$ 120,00"
+                            value={detailsDraft.price}
+                          />
+                        ) : (
+                          formatOptionalCurrency(item.price)
+                        )}
                       </td>
                       <td className="px-4 py-3 align-top text-[#52616b]">
-                        {formatOptionalText(item.deadline)}
+                        {editingItemId === item.id ? (
+                          <input
+                            className={tableInputClassName}
+                            onChange={(event) =>
+                              setDetailsDraft((currentDraft) => ({
+                                ...currentDraft,
+                                deadline: event.target.value,
+                              }))
+                            }
+                            type="date"
+                            value={detailsDraft.deadline}
+                          />
+                        ) : (
+                          formatOptionalText(item.deadline)
+                        )}
                       </td>
                       <td className="px-4 py-3 align-top">
                         <span className="rounded-md bg-[#e8eef0] px-2 py-1 text-xs font-medium text-[#52616b]">
@@ -302,6 +394,35 @@ export function PrintQueuePage() {
                       </td>
                       <td className="px-4 py-3 align-top">
                         <div className="flex flex-wrap gap-2">
+                          {editingItemId === item.id ? (
+                            <>
+                              <button
+                                className="inline-flex items-center gap-2 rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm font-medium text-[#34434d]"
+                                onClick={() => void saveItemDetails(item)}
+                                type="button"
+                              >
+                                <Save className="h-4 w-4" aria-hidden="true" />
+                                Salvar
+                              </button>
+                              <button
+                                className="inline-flex items-center gap-2 rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm font-medium text-[#34434d]"
+                                onClick={cancelEditingDetails}
+                                type="button"
+                              >
+                                <X className="h-4 w-4" aria-hidden="true" />
+                                Cancelar
+                              </button>
+                            </>
+                          ) : (
+                            <button
+                              className="inline-flex items-center gap-2 rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm font-medium text-[#34434d]"
+                              onClick={() => startEditingDetails(item)}
+                              type="button"
+                            >
+                              <Pencil className="h-4 w-4" aria-hidden="true" />
+                              Editar
+                            </button>
+                          )}
                           <button
                             className="inline-flex items-center gap-2 rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm font-medium text-[#34434d] disabled:cursor-not-allowed disabled:opacity-50"
                             disabled={item.status !== 'queued'}

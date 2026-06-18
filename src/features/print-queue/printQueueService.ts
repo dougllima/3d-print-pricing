@@ -17,6 +17,18 @@ type QueueOperationResult =
       success: false
     }
 
+type PrintQueueItemDetailsInput = {
+  clientName?: string
+  deadline?: string
+  price?: number
+}
+
+function normalizeOptionalText(value: string | undefined) {
+  const normalizedValue = value?.trim()
+
+  return normalizedValue === '' ? undefined : normalizedValue
+}
+
 function getMaterialUsages(printRun: PrintProfile['printRuns'][number]) {
   return printRun.plates.flatMap((plate) => plate.materials)
 }
@@ -101,6 +113,20 @@ export function createPrintQueueItem(input: {
     isActive: true,
     createdAt: now,
     updatedAt: now,
+  }
+}
+
+export function updatePrintQueueItemDetails(input: {
+  item: PrintQueueItem
+  now?: string
+  values: PrintQueueItemDetailsInput
+}): PrintQueueItem {
+  return {
+    ...input.item,
+    clientName: normalizeOptionalText(input.values.clientName),
+    deadline: normalizeOptionalText(input.values.deadline),
+    price: input.values.price,
+    updatedAt: input.now ?? createTimestamp(),
   }
 }
 

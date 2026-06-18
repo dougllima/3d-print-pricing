@@ -9,6 +9,7 @@ import {
   getNextQueuePosition,
   getPrintRunMaterialRequirements,
   startPrintQueueItem,
+  updatePrintQueueItemDetails,
 } from './printQueueService'
 
 const now = '2026-06-17T10:00:00.000Z'
@@ -111,6 +112,23 @@ describe('printQueueService', () => {
     expect(item.position).toBe(3)
     expect(item.status).toBe('queued')
     expect(item.isActive).toBe(true)
+  })
+
+  it('updates optional queue item details', () => {
+    const item = updatePrintQueueItemDetails({
+      item: queueItem,
+      now,
+      values: {
+        clientName: ' Cliente A ',
+        deadline: '',
+        price: 120,
+      },
+    })
+
+    expect(item.clientName).toBe('Cliente A')
+    expect(item.deadline).toBeUndefined()
+    expect(item.price).toBe(120)
+    expect(item.updatedAt).toBe(now)
   })
 
   it('sums material requirements across all plates', () => {
