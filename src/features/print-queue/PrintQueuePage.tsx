@@ -24,6 +24,14 @@ import { defaultSettings } from '@/shared/types'
 import { formatCurrency, formatMinutes } from '@/shared/utils'
 import { createTimestamp } from '@/shared/utils'
 
+import {
+  canReorderPrintQueueItem,
+  countPrintQueueItemsByFilter,
+  filterPrintQueueItems,
+  printQueueFilterOptions,
+  type PrintQueueFilter,
+  sortPrintQueueItems,
+} from './printQueueFilters'
 import { createPrintQueueItemSummary } from './printQueueSummary'
 import {
   archivePrintQueueItem,
@@ -40,8 +48,16 @@ const statusLabels: Record<PrintQueueItem['status'], string> = {
   started: 'Iniciada',
 }
 
-function sortQueueItems(items: PrintQueueItem[]) {
-  return items.toSorted((first, second) => first.position - second.position)
+const statusBadgeClassNames: Record<PrintQueueItem['status'], string> = {
+  canceled: 'bg-[#f6e4e1] text-[#9f2a1d]',
+  finished: 'bg-[#e5f4e8] text-[#276738]',
+  queued: 'bg-[#e8eef0] text-[#52616b]',
+  started: 'bg-[#dcebed] text-[#163b45]',
+}
+
+const statusRowClassNames: Partial<Record<PrintQueueItem['status'], string>> = {
+  canceled: 'bg-[#fffafa]',
+  finished: 'bg-[#fbfcfd]',
 }
 
 function formatOptionalCurrency(value: number | undefined) {
@@ -68,6 +84,7 @@ export function PrintQueuePage() {
   const [printProfiles, setPrintProfiles] = useState<PrintProfile[]>([])
   const [products, setProducts] = useState<Product[]>([])
   const [queueItems, setQueueItems] = useState<PrintQueueItem[]>([])
+  const [queueFilter, setQueueFilter] = useState<PrintQueueFilter>('active')
   const [queueMessage, setQueueMessage] = useState<string | undefined>()
   const [editingItemId, setEditingItemId] = useState<string | undefined>()
   const [detailsDraft, setDetailsDraft] = useState<QueueItemDetailsDraft>({
@@ -98,7 +115,7 @@ export function PrintQueuePage() {
     setPrinters(savedPrinters)
     setProducts(savedProducts)
     setPrintProfiles(savedPrintProfiles)
-    setQueueItems(sortQueueItems(savedQueueItems))
+    setQueueItems(sortPrintQueueItems(savedQueueItems))
     setSettings(savedSettings)
   }, [
     repositories.materials,
@@ -134,7 +151,7 @@ export function PrintQueuePage() {
             setPrinters(savedPrinters)
             setProducts(savedProducts)
             setPrintProfiles(savedPrintProfiles)
-            setQueueItems(sortQueueItems(savedQueueItems))
+            setQueueItems(sortPrintQueueItems(savedQueueItems))
             setSettings(savedSettings)
           }
         },
@@ -162,14 +179,22 @@ export function PrintQueuePage() {
     repositories.settings,
   ])
 
-  const activeQueueItems = useMemo(
-    () => sortQueueItems(queueItems.filter((queueItem) => queueItem.isActive)),
-    [queueItems],
+  const nonArchivedQueueItems = useMemo(() => filterPrintQueueItems(queueItems, 'all'), [queueItems])
+  const visibleQueueItems = useMemo(
+    () => filterPrintQueueItems(queueItems, queueFilter),
+    [queueFilter, queueItems],
   )
+  const visibleReorderableQueueItems = useMemo(
+    () => visibleQueueItems.filter(canReorderPrintQueueItem),
+    [visibleQueueItems],
+  )
+  const queueFilterCounts = useMemo(() => countPrintQueueItemsByFilter(queueItems), [queueItems])
 
   async function moveQueueItem(item: PrintQueueItem, direction: -1 | 1) {
-    const currentIndex = activeQueueItems.findIndex((queueItem) => queueItem.id === item.id)
-    const targetItem = activeQueueItems[currentIndex + direction]
+    const currentIndex = visibleReorderableQueueItems.findIndex(
+      (queueItem) => queueItem.id === item.id,
+    )
+    const targetItem = visibleReorderableQueueItems[currentIndex + direction]
 
     if (targetItem === undefined) {
       return
@@ -280,7 +305,7 @@ export function PrintQueuePage() {
           </div>
           <div className="flex flex-wrap gap-2">
             <div className="rounded-md border border-[#d8dee2] bg-[#fbfcfd] px-3 py-2 text-sm text-[#52616b]">
-              {activeQueueItems.length} item(ns) na fila
+              {visibleQueueItems.length} item(ns) exibido(s)
             </div>
             {queueMessage && (
               <div className="rounded-md border border-[#d8dee2] bg-[#fbfcfd] px-3 py-2 text-sm text-[#52616b]">
@@ -292,12 +317,43 @@ export function PrintQueuePage() {
       </header>
 
       <div className="px-5 pb-6 md:px-8">
-        {activeQueueItems.length === 0 ? (
+        {nonArchivedQueueItems.length === 0 ? (
           <section className="rounded-md border border-[#d8dee2] bg-white p-5 text-sm text-[#52616b] shadow-sm">
             Nenhuma impressão na fila.
           </section>
         ) : (
-          <section className="overflow-x-auto rounded-md border border-[#d8dee2] bg-white shadow-sm">
+          <div className="space-y-3">
+            <div className="flex flex-wrap gap-2">
+              {printQueueFilterOptions.map((option) => {
+                const isSelected = queueFilter === option.value
+
+                return (
+                  <button
+                    aria-pressed={isSelected}
+                    className={`inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium ${
+                      isSelected
+                        ? 'border-[#1f7a78] bg-[#dcebed] text-[#163b45]'
+                        : 'border-[#cfd7dc] bg-white text-[#52616b]'
+                    }`}
+                    key={option.value}
+                    onClick={() => setQueueFilter(option.value)}
+                    type="button"
+                  >
+                    <span>{option.label}</span>
+                    <span className="rounded bg-white/70 px-1.5 py-0.5 text-xs">
+                      {queueFilterCounts[option.value]}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+
+            {visibleQueueItems.length === 0 ? (
+              <section className="rounded-md border border-[#d8dee2] bg-white p-5 text-sm text-[#52616b] shadow-sm">
+                Nenhum item neste filtro.
+              </section>
+            ) : (
+              <section className="overflow-x-auto rounded-md border border-[#d8dee2] bg-white shadow-sm">
             <table className="min-w-[72rem] w-full border-collapse text-left text-sm">
               <thead className="border-b border-[#d8dee2] bg-[#fbfcfd] text-xs uppercase text-[#697782]">
                 <tr>
@@ -314,7 +370,10 @@ export function PrintQueuePage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#edf1f3]">
-                {activeQueueItems.map((item, index) => {
+                {visibleQueueItems.map((item, index) => {
+                  const reorderableIndex = visibleReorderableQueueItems.findIndex(
+                    (queueItem) => queueItem.id === item.id,
+                  )
                   const summary = createPrintQueueItemSummary({
                     item,
                     materials,
@@ -325,7 +384,7 @@ export function PrintQueuePage() {
                   })
 
                   return (
-                    <tr key={item.id}>
+                    <tr className={statusRowClassNames[item.status]} key={item.id}>
                       <td className="px-4 py-3 align-top">
                         <div className="flex items-center gap-2">
                           <span className="font-medium text-[#17202a]">{index + 1}</span>
@@ -333,7 +392,7 @@ export function PrintQueuePage() {
                             <button
                               aria-label="Mover para cima"
                               className="rounded-md border border-[#cfd7dc] p-1 text-[#52616b] disabled:opacity-40"
-                              disabled={index === 0}
+                              disabled={!canReorderPrintQueueItem(item) || reorderableIndex === 0}
                               onClick={() => void moveQueueItem(item, -1)}
                               type="button"
                             >
@@ -342,7 +401,10 @@ export function PrintQueuePage() {
                             <button
                               aria-label="Mover para baixo"
                               className="rounded-md border border-[#cfd7dc] p-1 text-[#52616b] disabled:opacity-40"
-                              disabled={index === activeQueueItems.length - 1}
+                              disabled={
+                                !canReorderPrintQueueItem(item) ||
+                                reorderableIndex === visibleReorderableQueueItems.length - 1
+                              }
                               onClick={() => void moveQueueItem(item, 1)}
                               type="button"
                             >
@@ -418,7 +480,11 @@ export function PrintQueuePage() {
                         )}
                       </td>
                       <td className="px-4 py-3 align-top">
-                        <span className="rounded-md bg-[#e8eef0] px-2 py-1 text-xs font-medium text-[#52616b]">
+                        <span
+                          className={`rounded-md px-2 py-1 text-xs font-medium ${
+                            statusBadgeClassNames[item.status]
+                          }`}
+                        >
                           {statusLabels[item.status]}
                         </span>
                       </td>
@@ -495,7 +561,9 @@ export function PrintQueuePage() {
                 })}
               </tbody>
             </table>
-          </section>
+              </section>
+            )}
+          </div>
         )}
       </div>
     </div>
