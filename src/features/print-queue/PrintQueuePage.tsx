@@ -32,6 +32,10 @@ import {
   type PrintQueueFilter,
   sortPrintQueueItems,
 } from './printQueueFilters'
+import {
+  createPrintQueueDeadlineInfo,
+  type PrintQueueDeadlineStatus,
+} from './printQueueDeadline'
 import { createPrintQueueItemSummary } from './printQueueSummary'
 import {
   archivePrintQueueItem,
@@ -58,6 +62,14 @@ const statusBadgeClassNames: Record<PrintQueueItem['status'], string> = {
 const statusRowClassNames: Partial<Record<PrintQueueItem['status'], string>> = {
   canceled: 'bg-[#fffafa]',
   finished: 'bg-[#fbfcfd]',
+}
+
+const deadlineStatusClassNames: Record<PrintQueueDeadlineStatus, string> = {
+  none: 'bg-[#e8eef0] text-[#52616b]',
+  overdue: 'bg-[#f6e4e1] text-[#9f2a1d]',
+  today: 'bg-[#fff2cc] text-[#7a5300]',
+  tomorrow: 'bg-[#e9f3ff] text-[#1f4f82]',
+  upcoming: 'bg-[#e5f4e8] text-[#276738]',
 }
 
 function formatOptionalCurrency(value: number | undefined) {
@@ -382,6 +394,7 @@ export function PrintQueuePage() {
                     products,
                     settings,
                   })
+                  const deadlineInfo = createPrintQueueDeadlineInfo(item.deadline)
 
                   return (
                     <tr className={statusRowClassNames[item.status]} key={item.id}>
@@ -476,7 +489,18 @@ export function PrintQueuePage() {
                             value={detailsDraft.deadline}
                           />
                         ) : (
-                          formatOptionalText(item.deadline)
+                          <div className="space-y-1">
+                            <div>{deadlineInfo.dateLabel}</div>
+                            {deadlineInfo.status !== 'none' && (
+                              <span
+                                className={`inline-flex rounded-md px-2 py-1 text-xs font-medium ${
+                                  deadlineStatusClassNames[deadlineInfo.status]
+                                }`}
+                              >
+                                {deadlineInfo.statusLabel}
+                              </span>
+                            )}
+                          </div>
                         )}
                       </td>
                       <td className="px-4 py-3 align-top">
