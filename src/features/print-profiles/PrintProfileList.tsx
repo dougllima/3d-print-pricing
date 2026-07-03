@@ -1,4 +1,4 @@
-import { Archive, Copy, ListPlus, Pencil, Star } from 'lucide-react'
+import { Archive, Copy, ListPlus, Pencil, Save, Star } from 'lucide-react'
 
 import type { GlobalSettings, Material, Printer, PrintProfile, Product } from '@/shared/types'
 import { cn, formatCurrency, formatMinutes, formatWeightGrams } from '@/shared/utils'
@@ -15,6 +15,10 @@ type PrintProfileListProps = {
   onArchive: (printProfile: PrintProfile) => Promise<void>
   onDuplicate: (printProfile: PrintProfile) => Promise<void>
   onEdit: (printProfile: PrintProfile) => void
+  onSaveCalculation: (
+    printProfile: PrintProfile,
+    printRun: PrintProfile['printRuns'][number],
+  ) => Promise<void>
   onToggleFavorite: (printProfile: PrintProfile) => Promise<void>
   printers: Printer[]
   printProfiles: PrintProfile[]
@@ -36,6 +40,7 @@ export function PrintProfileList({
   onArchive,
   onDuplicate,
   onEdit,
+  onSaveCalculation,
   onToggleFavorite,
   printers,
   printProfiles,
@@ -138,20 +143,36 @@ export function PrintProfileList({
                             Uma ou mais cores passam do estoque restante.
                           </p>
                         )}
-                        <button
-                          className="mt-3 inline-flex items-center gap-2 rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm font-medium text-[#34434d] disabled:cursor-not-allowed disabled:opacity-50"
-                          disabled={!canAddToQueue}
-                          onClick={() => void onAddToQueue(printProfile, printRun)}
-                          title={
-                            canAddToQueue
-                              ? undefined
-                              : 'Defina todos os filamentos antes de adicionar à fila.'
-                          }
-                          type="button"
-                        >
-                          <ListPlus className="h-4 w-4" aria-hidden="true" />
-                          Adicionar à fila
-                        </button>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          <button
+                            className="inline-flex items-center gap-2 rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm font-medium text-[#34434d] disabled:cursor-not-allowed disabled:opacity-50"
+                            disabled={summary.result === undefined}
+                            onClick={() => void onSaveCalculation(printProfile, printRun)}
+                            title={
+                              summary.result === undefined
+                                ? 'Defina impressora e filamentos antes de salvar o cálculo.'
+                                : undefined
+                            }
+                            type="button"
+                          >
+                            <Save className="h-4 w-4" aria-hidden="true" />
+                            Salvar cálculo
+                          </button>
+                          <button
+                            className="inline-flex items-center gap-2 rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm font-medium text-[#34434d] disabled:cursor-not-allowed disabled:opacity-50"
+                            disabled={!canAddToQueue}
+                            onClick={() => void onAddToQueue(printProfile, printRun)}
+                            title={
+                              canAddToQueue
+                                ? undefined
+                                : 'Defina todos os filamentos antes de adicionar à fila.'
+                            }
+                            type="button"
+                          >
+                            <ListPlus className="h-4 w-4" aria-hidden="true" />
+                            Adicionar à fila
+                          </button>
+                        </div>
                       </div>
                     )
                   })}

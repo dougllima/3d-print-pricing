@@ -18,6 +18,7 @@ import {
   createDuplicatedPrintProfile,
   createPrintProfileFromFormValues,
 } from './printProfileService'
+import { createCostCalculationFromPrintRun } from './printProfileCalculation'
 import type { PrintProfileFormValues } from './printProfileFormSchema'
 
 function sortPrintProfilesByName(printProfiles: PrintProfile[]) {
@@ -41,7 +42,7 @@ export function PrintProfilesPage() {
   const [printers, setPrinters] = useState<Printer[]>([])
   const [printProfiles, setPrintProfiles] = useState<PrintProfile[]>([])
   const [products, setProducts] = useState<Product[]>([])
-  const [queueMessage, setQueueMessage] = useState<string | undefined>()
+  const [feedbackMessage, setFeedbackMessage] = useState<string | undefined>()
   const [settings, setSettings] = useState<GlobalSettings>(defaultSettings)
 
   const loadPrintProfiles = useCallback(async () => {
@@ -132,7 +133,29 @@ export function PrintProfilesPage() {
         printRunId: printRun.id,
       }),
     )
-    setQueueMessage('Impressão adicionada à fila.')
+    setFeedbackMessage('Impressão adicionada à fila.')
+  }
+
+  async function savePrintRunCalculation(
+    printProfile: PrintProfile,
+    printRun: PrintProfile['printRuns'][number],
+  ) {
+    const printer = printers.find((savedPrinter) => savedPrinter.id === printProfile.printerId)
+    const costCalculation = createCostCalculationFromPrintRun({
+      materials,
+      printer,
+      printProfile,
+      printRun,
+      settings,
+    })
+
+    if (costCalculation === undefined) {
+      setFeedbackMessage('Defina impressora e filamentos antes de salvar o cálculo.')
+      return
+    }
+
+    await repositories.costCalculations.save(costCalculation)
+    setFeedbackMessage('Cálculo salvo no histórico.')
   }
 
   return (
@@ -149,9 +172,9 @@ export function PrintProfilesPage() {
             <div className="rounded-md border border-[#d8dee2] bg-[#fbfcfd] px-3 py-2 text-sm text-[#52616b]">
               {activePrintProfiles.length} impressão(ões) ativa(s)
             </div>
-            {queueMessage && (
+            {feedbackMessage && (
               <div className="rounded-md border border-[#d8dee2] bg-[#fbfcfd] px-3 py-2 text-sm text-[#52616b]">
-                {queueMessage}
+                {feedbackMessage}
               </div>
             )}
           </div>
@@ -174,6 +197,7 @@ export function PrintProfilesPage() {
           onArchive={(printProfile) => updatePrintProfile(printProfile, { isActive: false })}
           onDuplicate={duplicatePrintProfile}
           onEdit={setEditingPrintProfile}
+          onSaveCalculation={savePrintRunCalculation}
           onToggleFavorite={(printProfile) =>
             updatePrintProfile(printProfile, { isFavorite: !printProfile.isFavorite })
           }
