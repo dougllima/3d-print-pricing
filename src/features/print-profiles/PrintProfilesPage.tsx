@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRepositories } from '@/app/useRepositories'
 import {
   defaultSettings,
+  type CostCalculation,
   type GlobalSettings,
   type Material,
   type Printer,
@@ -18,8 +19,13 @@ import {
   createDuplicatedPrintProfile,
   createPrintProfileFromFormValues,
 } from './printProfileService'
-import { createCostCalculationFromPrintRun } from './printProfileCalculation'
 import type { PrintProfileFormValues } from './printProfileFormSchema'
+import { PrintRunCalculationDialog } from './PrintRunCalculationDialog'
+
+type SelectedPrintRun = {
+  printProfile: PrintProfile
+  printRun: PrintProfile['printRuns'][number]
+}
 
 function sortPrintProfilesByName(printProfiles: PrintProfile[]) {
   return printProfiles.toSorted((first, second) => first.name.localeCompare(second.name))
@@ -38,11 +44,12 @@ function getSlicerProfileOptions(printProfiles: PrintProfile[]) {
 export function PrintProfilesPage() {
   const repositories = useRepositories()
   const [editingPrintProfile, setEditingPrintProfile] = useState<PrintProfile | undefined>()
+  const [feedbackMessage, setFeedbackMessage] = useState<string | undefined>()
   const [materials, setMaterials] = useState<Material[]>([])
   const [printers, setPrinters] = useState<Printer[]>([])
   const [printProfiles, setPrintProfiles] = useState<PrintProfile[]>([])
   const [products, setProducts] = useState<Product[]>([])
-  const [feedbackMessage, setFeedbackMessage] = useState<string | undefined>()
+  const [selectedPrintRun, setSelectedPrintRun] = useState<SelectedPrintRun | undefined>()
   const [settings, setSettings] = useState<GlobalSettings>(defaultSettings)
 
   const loadPrintProfiles = useCallback(async () => {
@@ -94,6 +101,15 @@ export function PrintProfilesPage() {
     () => printProfiles.filter((printProfile) => printProfile.isActive),
     [printProfiles],
   )
+  const selectedPrinter = useMemo(
+    () =>
+      selectedPrintRun === undefined
+        ? undefined
+        : printers.find(
+            (printer) => printer.id === selectedPrintRun.printProfile.printerId,
+          ),
+    [printers, selectedPrintRun],
+  )
   const slicerProfileOptions = useMemo(
     () => getSlicerProfileOptions(printProfiles),
     [printProfiles],
@@ -136,25 +152,9 @@ export function PrintProfilesPage() {
     setFeedbackMessage('Impressão adicionada à fila.')
   }
 
-  async function savePrintRunCalculation(
-    printProfile: PrintProfile,
-    printRun: PrintProfile['printRuns'][number],
-  ) {
-    const printer = printers.find((savedPrinter) => savedPrinter.id === printProfile.printerId)
-    const costCalculation = createCostCalculationFromPrintRun({
-      materials,
-      printer,
-      printProfile,
-      printRun,
-      settings,
-    })
-
-    if (costCalculation === undefined) {
-      setFeedbackMessage('Defina impressora e filamentos antes de salvar o cálculo.')
-      return
-    }
-
-    await repositories.costCalculations.save(costCalculation)
+  async function savePrintRunCalculation(calculation: CostCalculation) {
+    await repositories.costCalculations.save(calculation)
+    setSelectedPrintRun(undefined)
     setFeedbackMessage('Cálculo salvo no histórico.')
   }
 
@@ -195,9 +195,11 @@ export function PrintProfilesPage() {
           materials={materials}
           onAddToQueue={addPrintRunToQueue}
           onArchive={(printProfile) => updatePrintProfile(printProfile, { isActive: false })}
+          onCalculate={(printProfile, printRun) =>
+            setSelectedPrintRun({ printProfile, printRun })
+          }
           onDuplicate={duplicatePrintProfile}
           onEdit={setEditingPrintProfile}
-          onSaveCalculation={savePrintRunCalculation}
           onToggleFavorite={(printProfile) =>
             updatePrintProfile(printProfile, { isFavorite: !printProfile.isFavorite })
           }
@@ -207,6 +209,18 @@ export function PrintProfilesPage() {
           settings={settings}
         />
       </div>
+
+      {selectedPrintRun !== undefined && selectedPrinter !== undefined && (
+        <PrintRunCalculationDialog
+          materials={materials}
+          onClose={() => setSelectedPrintRun(undefined)}
+          onSave={savePrintRunCalculation}
+          printer={selectedPrinter}
+          printProfile={selectedPrintRun.printProfile}
+          printRun={selectedPrintRun.printRun}
+          settings={settings}
+        />
+      )}
     </div>
   )
 }

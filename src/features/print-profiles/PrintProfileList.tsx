@@ -1,4 +1,4 @@
-import { Archive, Copy, ListPlus, Pencil, Save, Star } from 'lucide-react'
+import { Archive, Calculator, Copy, ListPlus, Pencil, Star } from 'lucide-react'
 
 import type { GlobalSettings, Material, Printer, PrintProfile, Product } from '@/shared/types'
 import { cn, formatCurrency, formatMinutes, formatWeightGrams } from '@/shared/utils'
@@ -15,10 +15,10 @@ type PrintProfileListProps = {
   onArchive: (printProfile: PrintProfile) => Promise<void>
   onDuplicate: (printProfile: PrintProfile) => Promise<void>
   onEdit: (printProfile: PrintProfile) => void
-  onSaveCalculation: (
+  onCalculate: (
     printProfile: PrintProfile,
     printRun: PrintProfile['printRuns'][number],
-  ) => Promise<void>
+  ) => void
   onToggleFavorite: (printProfile: PrintProfile) => Promise<void>
   printers: Printer[]
   printProfiles: PrintProfile[]
@@ -38,9 +38,9 @@ export function PrintProfileList({
   materials,
   onAddToQueue,
   onArchive,
+  onCalculate,
   onDuplicate,
   onEdit,
-  onSaveCalculation,
   onToggleFavorite,
   printers,
   printProfiles,
@@ -147,7 +147,7 @@ export function PrintProfileList({
                           <button
                             className="inline-flex items-center gap-2 rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm font-medium text-[#34434d] disabled:cursor-not-allowed disabled:opacity-50"
                             disabled={summary.result === undefined}
-                            onClick={() => void onSaveCalculation(printProfile, printRun)}
+                            onClick={() => onCalculate(printProfile, printRun)}
                             title={
                               summary.result === undefined
                                 ? 'Defina impressora e filamentos antes de salvar o cálculo.'
@@ -155,8 +155,8 @@ export function PrintProfileList({
                             }
                             type="button"
                           >
-                            <Save className="h-4 w-4" aria-hidden="true" />
-                            Salvar cálculo
+                            <Calculator className="h-4 w-4" aria-hidden="true" />
+                            Calcular
                           </button>
                           <button
                             className="inline-flex items-center gap-2 rounded-md border border-[#cfd7dc] bg-white px-3 py-2 text-sm font-medium text-[#34434d] disabled:cursor-not-allowed disabled:opacity-50"

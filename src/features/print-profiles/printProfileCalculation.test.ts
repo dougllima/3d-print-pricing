@@ -133,4 +133,37 @@ describe('printProfileCalculation', () => {
       }),
     ).toBeUndefined()
   })
+
+  it('applies calculation overrides and finishing tasks to the snapshot', () => {
+    const calculation = createCostCalculationFromPrintRun({
+      createdAt: now,
+      failureRatePercent: 10,
+      finishingTasks: [
+        {
+          id: 'finishing-1',
+          name: 'Montagem',
+          hours: 1,
+          hourlyRate: 20,
+          materialCost: 5,
+        },
+      ],
+      id: 'calculation-2',
+      materials,
+      printer,
+      printProfile,
+      printRun,
+      profitMarginPercent: 25,
+      settings,
+    })
+
+    expect(calculation?.snapshot).toMatchObject({
+      failureRatePercent: 10,
+      profitMarginPercent: 25,
+    })
+    expect(calculation?.finishingTasks).toHaveLength(1)
+    expect(calculation?.result.finishingCost).toBe(25)
+    expect(calculation?.result.suggestedPrice).toBeCloseTo(
+      (calculation?.result.totalCost ?? 0) / 0.75,
+    )
+  })
 })

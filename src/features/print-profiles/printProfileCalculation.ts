@@ -1,4 +1,11 @@
-import type { CostCalculation, GlobalSettings, Material, Printer, PrintProfile } from '@/shared/types'
+import type {
+  CostCalculation,
+  FinishingTask,
+  GlobalSettings,
+  Material,
+  Printer,
+  PrintProfile,
+} from '@/shared/types'
 import { createEntityId, createTimestamp } from '@/shared/utils'
 
 import { createPrintRunSummary } from './printRunSummary'
@@ -32,14 +39,29 @@ function calculateWeightedMaterialPricePerKg(input: {
 
 export function createCostCalculationFromPrintRun(input: {
   createdAt?: string
+  failureRatePercent?: number
+  finishingTasks?: FinishingTask[]
   id?: string
   materials: Material[]
   printer: Printer | undefined
   printProfile: PrintProfile
   printRun: PrintProfile['printRuns'][number]
+  profitMarginPercent?: number
   settings: GlobalSettings
 }): CostCalculation | undefined {
+  const failureRatePercent =
+    input.failureRatePercent ??
+    input.printer?.defaultFailureRatePercent ??
+    input.settings.defaultFailureRatePercent
+  const finishingTasks = input.finishingTasks ?? []
+  const profitMarginPercent =
+    input.profitMarginPercent ?? input.settings.defaultProfitMarginPercent
   const summary = createPrintRunSummary({
+    calculation: {
+      failureRatePercent,
+      finishingTasks,
+      profitMarginPercent,
+    },
     materials: input.materials,
     printer: input.printer,
     printRun: input.printRun,
@@ -71,9 +93,8 @@ export function createCostCalculationFromPrintRun(input: {
       printerEstimatedLifetimeHours: input.printer.estimatedLifetimeHours,
       printerMaintenanceCostPerHour: input.printer.maintenanceCostPerHour,
       electricityCostPerKwh: input.settings.electricityCostPerKwh,
-      profitMarginPercent: input.settings.defaultProfitMarginPercent,
-      failureRatePercent:
-        input.printer.defaultFailureRatePercent ?? input.settings.defaultFailureRatePercent,
+      profitMarginPercent,
+      failureRatePercent,
     },
     input: {
       quantity: input.printRun.quantity,
@@ -83,7 +104,7 @@ export function createCostCalculationFromPrintRun(input: {
       purgeWeightGrams: sumPrintRunWeight(input.printRun, 'purgeWeightGrams'),
       otherWasteGrams: sumPrintRunWeight(input.printRun, 'otherWasteGrams'),
     },
-    finishingTasks: [],
+    finishingTasks,
     result: summary.result,
     createdAt: input.createdAt ?? createTimestamp(),
   }

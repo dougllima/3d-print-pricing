@@ -1,6 +1,7 @@
 import { calculateCost, type CostCalculationResult } from '@/features/calculations'
 import type {
   GlobalSettings,
+  FinishingTask,
   Material,
   Printer,
   PrintProfile,
@@ -22,6 +23,12 @@ export type PrintRunSummary = {
   stockWarnings: MaterialUsageSummary[]
   totalPrintTimeMinutes: number
   totalWeightGrams: number
+}
+
+export type PrintRunCalculationOptions = {
+  failureRatePercent?: number
+  finishingTasks?: FinishingTask[]
+  profitMarginPercent?: number
 }
 
 function findById<TEntity extends { id: string }>(items: TEntity[], id?: string) {
@@ -68,6 +75,7 @@ function createMaterialUsageSummaries(
 }
 
 export function createPrintRunSummary(input: {
+  calculation?: PrintRunCalculationOptions
   materials: Material[]
   printRun: PrintProfile['printRuns'][number]
   printer?: Printer
@@ -107,10 +115,13 @@ export function createPrintRunSummary(input: {
           printTimeMinutes: totalPrintTimeMinutes,
           modelWeightGrams: 0,
           quantity: input.printRun.quantity,
-          finishingTasks: [],
+          finishingTasks: input.calculation?.finishingTasks ?? [],
           failureRatePercent:
-            input.printer.defaultFailureRatePercent ?? input.settings.defaultFailureRatePercent,
-          profitMarginPercent: input.settings.defaultProfitMarginPercent,
+            input.calculation?.failureRatePercent ??
+            input.printer.defaultFailureRatePercent ??
+            input.settings.defaultFailureRatePercent,
+          profitMarginPercent:
+            input.calculation?.profitMarginPercent ?? input.settings.defaultProfitMarginPercent,
         })
   const stockWarnings = materialUsages.filter(
     (materialUsage) =>
