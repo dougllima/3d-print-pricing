@@ -2,7 +2,50 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it } from 'vitest'
 
+import { STORAGE_KEYS } from '@/shared/constants'
+import type { CostCalculation } from '@/shared/types'
+
 import App from './App'
+
+const savedCalculation: CostCalculation = {
+  id: 'calculation-1',
+  name: 'Porta joias (2 un.)',
+  snapshot: {
+    materialName: 'PLA Preto, PLA Branco',
+    materialPricePerKg: 125,
+    printerName: 'A1',
+    printerPowerWatts: 100,
+    electricityCostPerKwh: 1,
+    profitMarginPercent: 40,
+    failureRatePercent: 5,
+  },
+  input: {
+    quantity: 2,
+    printTimeHours: 1.5,
+    modelWeightGrams: 50,
+    supportWeightGrams: 5,
+    purgeWeightGrams: 5,
+    otherWasteGrams: 0,
+  },
+  finishingTasks: [],
+  result: {
+    materialCost: 7.5,
+    energyCost: 0.15,
+    machineCost: 0,
+    maintenanceCost: 0,
+    failureReserveCost: 0.38,
+    printingCost: 7.65,
+    finishingCost: 0,
+    totalCost: 8.03,
+    suggestedPrice: 13.38,
+    estimatedProfit: 5.35,
+    realMarginPercent: 40,
+    totalWeightGrams: 60,
+    wasteWeightGrams: 10,
+    wastePercent: 16.67,
+  },
+  createdAt: '2026-07-03T10:00:00.000Z',
+}
 
 describe('App', () => {
   beforeEach(() => {
@@ -69,5 +112,24 @@ describe('App', () => {
 
     await user.click(screen.getByRole('button', { name: /Configura..es/i }))
     expect(screen.getByRole('heading', { name: /Par.metros globais/i })).toBeInTheDocument()
+  })
+
+  it('shows the complete snapshot of a saved calculation', async () => {
+    const user = userEvent.setup()
+    localStorage.setItem(STORAGE_KEYS.costCalculations, JSON.stringify([savedCalculation]))
+
+    render(<App />)
+
+    await user.click(screen.getByRole('button', { name: /^Hist.rico$/i }))
+    const calculationHeading = await screen.findByRole('heading', {
+      name: /Porta joias \(2 un\.\)/i,
+    })
+
+    await user.click(calculationHeading)
+
+    expect(screen.getByRole('heading', { name: /Dados da impress.o/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Snapshot utilizado/i })).toBeInTheDocument()
+    expect(screen.getByText('PLA Preto, PLA Branco')).toBeInTheDocument()
+    expect(screen.getByText('1h 30min')).toBeInTheDocument()
   })
 })
