@@ -12,7 +12,7 @@ describe('App', () => {
   it('renders the dashboard as the initial workspace', async () => {
     render(<App />)
 
-    expect(screen.getByRole('heading', { name: /Vis.o geral do MVP/i })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /Vis.o geral/i })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Novo c.lculo/i })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Impress.es/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Fila/i })).toBeInTheDocument()

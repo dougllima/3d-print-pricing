@@ -1,4 +1,15 @@
-import { AlertTriangle, Calculator, Cuboid, History, Layers3, Package, Printer } from 'lucide-react'
+import {
+  AlertTriangle,
+  Calculator,
+  Clock3,
+  Cuboid,
+  History,
+  Layers3,
+  ListOrdered,
+  Package,
+  PlayCircle,
+  Printer,
+} from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
 import { useRepositories } from '@/app/useRepositories'
@@ -7,9 +18,12 @@ import type {
   Material,
   Printer as PrinterType,
   PrintProfile,
+  PrintQueueItem,
   Product,
 } from '@/shared/types'
-import { isMaterialLowStock } from '@/shared/utils'
+import { formatMinutes, isMaterialLowStock } from '@/shared/utils'
+
+import { createDashboardQueueSummary } from './dashboardQueueSummary'
 
 type DashboardData = {
   calculations: CostCalculation[]
@@ -17,6 +31,7 @@ type DashboardData = {
   printers: PrinterType[]
   printProfiles: PrintProfile[]
   products: Product[]
+  queueItems: PrintQueueItem[]
 }
 
 const currencyFormatter = new Intl.NumberFormat('pt-BR', {
@@ -34,6 +49,13 @@ const emptyDashboardData: DashboardData = {
   printers: [],
   printProfiles: [],
   products: [],
+  queueItems: [],
+}
+
+const deadlineStatusClassNames = {
+  overdue: 'bg-[#f6e4e1] text-[#9f2a1d]',
+  today: 'bg-[#fff2cc] text-[#7a5300]',
+  tomorrow: 'bg-[#e9f3ff] text-[#1f4f82]',
 }
 
 function formatWeight(weightGrams: number | undefined) {
@@ -53,10 +75,11 @@ export function DashboardPage() {
       repositories.products.list(),
       repositories.printProfiles.list(),
       repositories.costCalculations.list(),
+      repositories.printQueue.list(),
     ])
-      .then(([materials, printers, products, printProfiles, calculations]) => {
+      .then(([materials, printers, products, printProfiles, calculations, queueItems]) => {
         if (shouldUpdate) {
-          setData({ calculations, materials, printers, printProfiles, products })
+          setData({ calculations, materials, printers, printProfiles, products, queueItems })
         }
       })
       .catch(() => {
@@ -73,6 +96,7 @@ export function DashboardPage() {
     repositories.materials,
     repositories.printers,
     repositories.printProfiles,
+    repositories.printQueue,
     repositories.products,
   ])
 
@@ -96,7 +120,17 @@ export function DashboardPage() {
     [data.materials],
   )
 
-  const metrics = [
+  const queueSummary = useMemo(
+    () =>
+      createDashboardQueueSummary({
+        printProfiles: data.printProfiles,
+        products: data.products,
+        queueItems: data.queueItems,
+      }),
+    [data.printProfiles, data.products, data.queueItems],
+  )
+
+  const catalogMetrics = [
     {
       icon: Cuboid,
       label: 'Materiais ativos',
@@ -119,15 +153,25 @@ export function DashboardPage() {
     },
   ]
 
+  const queueMetrics = [
+    { icon: ListOrdered, label: 'Aguardando', value: queueSummary.queuedCount },
+    { icon: PlayCircle, label: 'Em andamento', value: queueSummary.startedCount },
+    {
+      icon: Clock3,
+      label: 'Tempo pendente',
+      value: formatMinutes(queueSummary.pendingPrintTimeMinutes),
+    },
+  ]
+
   return (
     <div className="space-y-5">
       <header className="border-b border-[#d8dee2] bg-white px-5 py-5 md:px-8">
         <p className="text-sm font-medium text-[#1f7a78]">Dashboard</p>
-        <h1 className="mt-1 text-2xl font-semibold text-[#17202a]">Visão geral do MVP</h1>
+        <h1 className="mt-1 text-2xl font-semibold text-[#17202a]">Visão geral</h1>
       </header>
 
       <section className="grid gap-4 px-5 md:grid-cols-4 md:px-8">
-        {metrics.map((metric) => {
+        {catalogMetrics.map((metric) => {
           const Icon = metric.icon
 
           return (
@@ -141,6 +185,69 @@ export function DashboardPage() {
             </article>
           )
         })}
+      </section>
+
+      <section className="px-5 md:px-8">
+        <div className="overflow-hidden rounded-md border border-[#d8dee2] bg-white shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#d8dee2] px-5 py-4">
+            <h2 className="text-lg font-semibold text-[#17202a]">Fila de impressão</h2>
+            {queueSummary.overdueCount > 0 && (
+              <span className="rounded-md bg-[#f6e4e1] px-2 py-1 text-xs font-medium text-[#9f2a1d]">
+                {queueSummary.overdueCount} atrasada(s)
+              </span>
+            )}
+          </div>
+          <div className="grid md:grid-cols-3">
+            {queueMetrics.map((metric, index) => {
+              const Icon = metric.icon
+
+              return (
+                <div
+                  className={`px-5 py-4 ${index > 0 ? 'border-t border-[#edf1f3] md:border-l md:border-t-0' : ''}`}
+                  key={metric.label}
+                >
+                  <div className="flex items-center gap-2 text-[#697782]">
+                    <Icon className="h-4 w-4 text-[#1f7a78]" aria-hidden="true" />
+                    <span className="text-sm">{metric.label}</span>
+                  </div>
+                  <p className="mt-2 text-2xl font-semibold text-[#17202a]">{metric.value}</p>
+                </div>
+              )
+            })}
+          </div>
+
+          {queueSummary.urgentItems.length > 0 && (
+            <div className="border-t border-[#d8dee2] px-5 py-4">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-[#8a6100]" aria-hidden="true" />
+                <h3 className="text-sm font-semibold text-[#17202a]">
+                  Prazos que precisam de atenção
+                </h3>
+              </div>
+              <ul className="mt-3 grid gap-2 lg:grid-cols-2">
+                {queueSummary.urgentItems.slice(0, 4).map((item) => (
+                  <li
+                    className="flex items-center justify-between gap-3 rounded-md border border-[#edf1f3] bg-[#fbfcfd] px-3 py-2 text-sm"
+                    key={item.id}
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-[#17202a]">{item.productName}</p>
+                      <p className="truncate text-xs text-[#697782]">{item.printProfileName}</p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <span
+                        className={`inline-flex rounded-md px-2 py-1 text-xs font-medium ${deadlineStatusClassNames[item.deadlineStatus]}`}
+                      >
+                        {item.statusLabel}
+                      </span>
+                      <p className="mt-1 text-xs text-[#697782]">{item.deadlineLabel}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
       </section>
 
       {lowStockMaterials.length > 0 && (
