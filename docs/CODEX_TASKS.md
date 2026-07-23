@@ -149,24 +149,17 @@ Requirements:
 - summarize changed files.
 ```
 
-## Task 9 - Implement new calculation flow
+## Task 9 - Legacy standalone calculation flow (retired)
 
 ```txt
-Read AGENTS.md, docs/DOMAIN_MODEL.md, and docs/CALCULATION_RULES.md.
+This task described the first calculation UI and is retained only as historical context.
 
-Legacy note: this standalone flow was removed from the main navigation. Prefer calculations from saved PrintProfiles and PrintQueueItems in future work.
-
-Implement the New Calculation page.
-
-Requirements:
-- allow standalone calculation;
-- allow calculation from a saved PrintProfile;
-- copied values may be overridden before calculating;
-- support optional finishing tasks;
-- show detailed cost breakdown;
-- save CostCalculation snapshot to history;
-- do not mutate Product, Material, Printer or PrintProfile when saving calculation;
-- summarize changed files.
+Current decision:
+- the standalone calculation page was removed;
+- calculations start from a saved PrintProfileRun;
+- slicer totals remain read-only;
+- margin, failure reserve and optional finishing may be adjusted;
+- saving creates a CostCalculation snapshot without mutating catalog entities.
 ```
 
 ## Task 9.1 - Refine print profiles as production configurations
@@ -185,7 +178,7 @@ Requirements:
 - print time must be stored in minutes and collected as hours + minutes in the UI;
 - saved print runs use slicer totals directly and must not multiply weights/time by quantity again;
 - show generated cost and suggested price inside the Impressões list;
-- keep standalone calculation available only as an optional simulation flow;
+- keep calculations inside the saved print run workflow;
 - keep repository abstraction;
 - update tests and summarize changed files.
 ```

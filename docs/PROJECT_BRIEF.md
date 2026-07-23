@@ -93,7 +93,7 @@ Print run weight and time values come from slicer totals for that quantity and m
 
 A saved calculation result. It must store snapshots of the values used at calculation time.
 
-The standalone calculation flow was removed from the main navigation. Cost should be calculated from saved print profiles and queue items.
+The standalone calculation flow was removed. Cost is calculated from a saved print run, where margin, failure reserve and optional finishing can be adjusted before saving the snapshot.
 
 ### PrintQueueItem
 

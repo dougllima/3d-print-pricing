@@ -142,7 +142,7 @@ feat: add print profile management
 Tasks:
 
 - Treat CostCalculation as generated output instead of required primary workflow.
-- Keep standalone calculation as an optional simulation tool.
+- Calculate and save snapshots from quantity-specific print runs.
 - Calculate saved print runs from their stored slicer totals.
 - Warn when any material usage exceeds remaining stock.
 - Preserve historical CostCalculation snapshots.
@@ -153,22 +153,22 @@ Suggested commit:
 feat: support multi-material print runs
 ```
 
-## Phase 8 - New calculation
+## Phase 8 - Detailed print run calculation
 
 Tasks:
 
-- Create new calculation page.
-- Allow standalone calculation.
-- Allow calculation from print profile.
-- Allow overriding copied values.
-- Add finishing tasks.
-- Show detailed breakdown.
-- Save calculation to history.
+- Open calculation details from a saved print run.
+- Keep slicer totals read-only during calculation.
+- Allow overriding profit margin and failure reserve.
+- Add optional finishing tasks.
+- Show a detailed cost preview.
+- Save a CostCalculation snapshot to history.
+- Do not keep a standalone calculation page.
 
 Suggested commit:
 
 ```txt
-feat: add cost calculation flow
+feat: add detailed print run calculation flow
 ```
 
 ## Phase 9 - History and dashboard
